@@ -98,12 +98,12 @@ const TYPES = [
 const KEY = 'csc_community_picks';
 
 /* ---- 内置精选：与 APP assets/relax_picks.json 同步（每型一条样例+示例评分，
-   真实用户评分接入后替换 sampleRating 为真实聚合值） ---- */
+   真实用户评分接入后用聚合值替换 sampleRatingAvg/Count） ---- */
 const BUILTIN = [
-  {title:'呼吸放松 4-7-8 · 焦虑平复引导', url:'https://m.bilibili.com/search?keyword=478%E5%91%BC%E5%90%B8%E6%94%BE%E6%9D%BE%E5%8A%A9%E7%9C%A0', type:'anxiety', sample:true, sampleRating:'★ 4.7 · 215 次评价'},
-  {title:'世界通史有声书 · 越听越困系列', url:'https://m.bilibili.com/search?keyword=%E4%B8%96%E7%95%8C%E9%80%9A%E5%8F%B2%E6%9C%89%E5%A3%B0%E4%B9%A6', type:'excitement', sample:true, sampleRating:'★ 4.6 · 178 次评价'},
-  {title:'渐进式肌肉放松 · 从脚到眉引导', url:'https://m.bilibili.com/search?keyword=%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%82%8C%E8%82%89%E6%94%BE%E6%9D%BE%E5%BC%95%E5%AF%BC', type:'physical', sample:true, sampleRating:'★ 4.8 · 156 次评价'},
-  {title:'雨声助眠 8 小时 · 雨打窗台', url:'https://m.bilibili.com/search?keyword=%E9%9B%A8%E5%A3%B0%E5%8A%A9%E7%9C%A08%E5%B0%8F%E6%97%B6', type:'noise', sample:true, sampleRating:'★ 4.9 · 302 次评价'}
+  {title:'呼吸放松 4-7-8 · 焦虑平复引导', url:'https://m.bilibili.com/search?keyword=478%E5%91%BC%E5%90%B8%E6%94%BE%E6%9D%BE%E5%8A%A9%E7%9C%A0', type:'anxiety', sample:true, sampleRatingAvg:4.7, sampleRatingCount:215},
+  {title:'世界通史有声书 · 越听越困系列', url:'https://m.bilibili.com/search?keyword=%E4%B8%96%E7%95%8C%E9%80%9A%E5%8F%B2%E6%9C%89%E5%A3%B0%E4%B9%A6', type:'excitement', sample:true, sampleRatingAvg:4.6, sampleRatingCount:178},
+  {title:'渐进式肌肉放松 · 从脚到眉引导', url:'https://m.bilibili.com/search?keyword=%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%82%8C%E8%82%89%E6%94%BE%E6%9D%BE%E5%BC%95%E5%AF%BC', type:'physical', sample:true, sampleRatingAvg:4.8, sampleRatingCount:156},
+  {title:'雨声助眠 8 小时 · 雨打窗台', url:'https://m.bilibili.com/search?keyword=%E9%9B%A8%E5%A3%B0%E5%8A%A9%E7%9C%A08%E5%B0%8F%E6%97%B6', type:'noise', sample:true, sampleRatingAvg:4.9, sampleRatingCount:302}
 ];
 
 /* ================= AdGuard（词表来源 docs/adguard-rules.json，与 APP AdGuard.kt 同步） ================= */
@@ -225,7 +225,9 @@ function card(title, url, type, pick, isCommunity, sample, sampleRating) {
     el.appendChild(rate);
   } else {
     m.insertAdjacentHTML('beforeend', '');
-    m.appendChild(document.createTextNode(sampleRating || url));
+    m.appendChild(document.createTextNode(
+      sampleRating ? '★ ' + sampleRating.toFixed(1) + ' · ' + sampleRatingCount + ' 次评价' : url
+    ));
   }
   el.querySelector('.t').onclick = () => window.open(url, '_blank');
   return el;

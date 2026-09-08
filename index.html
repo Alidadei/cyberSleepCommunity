@@ -97,21 +97,13 @@ const TYPES = [
 ];
 const KEY = 'csc_community_picks';
 
-/* ---- 内置精选：与 APP assets/relax_picks.json 同步 ---- */
+/* ---- 内置精选：与 APP assets/relax_picks.json 同步（每型一条样例+示例评分，
+   真实用户评分接入后替换 sampleRating 为真实聚合值） ---- */
 const BUILTIN = [
-  {title:'4-7-8 呼吸放松 · 焦虑平复引导（B站）', url:'https://m.bilibili.com/search?keyword=478%E5%91%BC%E5%90%B8%E6%94%BE%E6%9D%BE%E5%8A%A9%E7%9C%A0', type:'anxiety'},
-  {title:'正念身体扫描 · 十分钟卸下紧绷（B站）', url:'https://m.bilibili.com/search?keyword=%E8%BA%AB%E4%BD%93%E6%89%AB%E6%8F%8F%E5%86%A5%E6%83%B3', type:'anxiety'},
-  {title:'雨声助眠 8 小时 · 雨打窗台（B站）', url:'https://m.bilibili.com/search?keyword=%E9%9B%A8%E5%A3%B0%E5%8A%A9%E7%9C%A08%E5%B0%8F%E6%97%B6', type:'anxiety'},
-  {title:'认知洗牌法 · 给停不下来的大脑换台（B站）', url:'https://m.bilibili.com/search?keyword=%E8%AE%A4%E7%9F%A5%E6%B4%97%E7%89%8C%E6%B3%95%E5%A4%B1%E7%9C%A0', type:'excitement'},
-  {title:'世界通史有声书 · 越听越困系列（B站）', url:'https://m.bilibili.com/search?keyword=%E4%B8%96%E7%95%8C%E9%80%9A%E5%8F%B2%E6%9C%89%E5%A3%B0%E4%B9%A6', type:'excitement'},
-  {title:'睡前故事 · 成人版轻声讲（B站）', url:'https://m.bilibili.com/search?keyword=%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B%E6%88%90%E4%BA%BA', type:'excitement'},
-  {title:'渐进式肌肉放松 · 从脚到眉引导（B站）', url:'https://m.bilibili.com/search?keyword=%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%82%8C%E8%82%89%E6%94%BE%E6%9D%BE%E5%BC%95%E5%AF%BC', type:'physical'},
-  {title:'睡前拉伸 · 八分钟松开腰背（B站）', url:'https://m.bilibili.com/search?keyword=%E7%9D%A1%E5%89%8D%E6%8B%89%E4%BC%B88%E5%88%86%E9%92%9F', type:'physical'},
-  {title:'胃不和则卧不安 · 睡前饮食避坑（B站）', url:'https://m.bilibili.com/search?keyword=%E7%9D%A1%E5%89%8D%E4%B8%8D%E8%83%BD%E5%90%83%E4%BB%80%E4%B9%88', type:'physical'},
-  {title:'白噪音 10 小时 · 环境噪音遮蔽（B站）', url:'https://m.bilibili.com/search?keyword=%E7%99%BD%E5%99%AA%E9%9F%B3%E5%8A%A9%E7%9C%A010%E5%B0%8F%E6%97%B6', type:'noise'},
-  {title:'粉红噪音 · 比白噪音更柔的遮蔽层（B站）', url:'https://m.bilibili.com/search?keyword=%E7%B2%89%E7%BA%A2%E5%99%AA%E9%9F%B3%E5%8A%A9%E7%9C%A0', type:'noise'},
-  {title:'雨打窗台 · 雨夜白噪音（B站）', url:'https://m.bilibili.com/search?keyword=%E9%9B%A8%E6%89%93%E7%AA%97%E5%8F%B0%E5%A3%B0', type:'noise'},
-  {title:'篝火壁炉声 · 暖烘烘的困意（B站）', url:'https://m.bilibili.com/search?keyword=%E7%AF%9D%E7%81%AB%E5%A3%81%E7%82%89%E5%A3%B0%E5%8A%A9%E7%9C%A0', type:'noise'}
+  {title:'呼吸放松 4-7-8 · 焦虑平复引导', url:'https://m.bilibili.com/search?keyword=478%E5%91%BC%E5%90%B8%E6%94%BE%E6%9D%BE%E5%8A%A9%E7%9C%A0', type:'anxiety', sample:true, sampleRating:'★ 4.7 · 215 次评价'},
+  {title:'世界通史有声书 · 越听越困系列', url:'https://m.bilibili.com/search?keyword=%E4%B8%96%E7%95%8C%E9%80%9A%E5%8F%B2%E6%9C%89%E5%A3%B0%E4%B9%A6', type:'excitement', sample:true, sampleRating:'★ 4.6 · 178 次评价'},
+  {title:'渐进式肌肉放松 · 从脚到眉引导', url:'https://m.bilibili.com/search?keyword=%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%82%8C%E8%82%89%E6%94%BE%E6%9D%BE%E5%BC%95%E5%AF%BC', type:'physical', sample:true, sampleRating:'★ 4.8 · 156 次评价'},
+  {title:'雨声助眠 8 小时 · 雨打窗台', url:'https://m.bilibili.com/search?keyword=%E9%9B%A8%E5%A3%B0%E5%8A%A9%E7%9C%A08%E5%B0%8F%E6%97%B6', type:'noise', sample:true, sampleRating:'★ 4.9 · 302 次评价'}
 ];
 
 /* ================= AdGuard（词表来源 docs/adguard-rules.json，与 APP AdGuard.kt 同步） ================= */
@@ -200,7 +192,7 @@ function render() {
   const seen = new Set();
   BUILTIN.filter(p => currentType === 'all' || p.type === currentType).forEach(p => {
     seen.add(p.url);
-    list.appendChild(card(p.title, p.url, p.type, null, false));
+    list.appendChild(card(p.title, p.url, p.type, null, false, p.sample, p.sampleRating));
   });
 
   const community = sortPicks(Store.load()).filter(p => currentType === 'all' || p.type === currentType);
@@ -214,13 +206,13 @@ function render() {
     list.appendChild(empty);
   }
 }
-function card(title, url, type, pick, isCommunity) {
+function card(title, url, type, pick, isCommunity, sample, sampleRating) {
   const el = document.createElement('div');
   el.className = 'card';
   let meta = '';
   if (type) meta += '<span class="type">' + typeLabel(type) + '</span>';
   el.innerHTML = '<span class="t"></span><div class="m">' + meta + '</div>';
-  el.querySelector('.t').textContent = title;
+  el.querySelector('.t').textContent = (sample ? '【样例】' : '') + title;
   const m = el.querySelector('.m');
   if (isCommunity && pick) {
     const avg = pick.ratings && pick.ratings.length
@@ -233,7 +225,7 @@ function card(title, url, type, pick, isCommunity) {
     el.appendChild(rate);
   } else {
     m.insertAdjacentHTML('beforeend', '');
-    m.appendChild(document.createTextNode(url));
+    m.appendChild(document.createTextNode(sampleRating || url));
   }
   el.querySelector('.t').onclick = () => window.open(url, '_blank');
   return el;

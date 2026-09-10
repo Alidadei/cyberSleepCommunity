@@ -22,17 +22,19 @@
 ## 给开发者 / AI agent
 
 - [docs/DATA_CONTRACT.md](docs/DATA_CONTRACT.md) —— 与 APP 端对齐的数据契约（字段、类型、排序、红线）
-- [docs/AGENT_HANDOFF.md](docs/AGENT_HANDOFF.md) —— 接手开发指南（当前状态、铁律、P1 路线）
+- [docs/AGENT_HANDOFF.md](docs/AGENT_HANDOFF.md) —— 接手开发指南（当前状态、铁律、路线）
 - [docs/adguard-rules.json](docs/adguard-rules.json) —— 反广告词表唯一权威来源
+- [docs/supabase-schema.sql](docs/supabase-schema.sql) —— P1 云端建表脚本（SQL Editor 直接粘贴执行）
+- [tests/dom-test.mjs](tests/dom-test.mjs) —— 零依赖行为测试，`node tests/dom-test.mjs` 一键回归
 
 ## 路线
 
 | 阶段 | 状态 | 说明 |
 |---|---|---|
-| P0 本机版 | ✅ 当前 | localStorage 存储，导出/导入 JSON 搬运 |
-| P1 云端互通 | 规划中 | Supabase 免费档，网站与 APP 实时共享数据 |
-| P2 体验增强 | 规划中 | 匿名昵称、去重、星星打分控件 |
-| P3 社区深化 | 远期 | 与 APP「寻找张怀民」联动留言墙 |
+| P0 本机版 | ✅ | localStorage 存储，导出/导入 JSON 搬家（导入自动合并去重） |
+| P2 体验增强 | ✅ 当前 | 星星打分控件、匿名昵称「未寝人####」、URL 去重提示、「APP 同款」标识 |
+| P1 云端互通 | 代码就绪 | 网站端 `SupabaseStore` 已实现；注册 Supabase + 执行 `docs/supabase-schema.sql` + 填两行配置即开通（APP 端换源点已预留） |
+| P3 社区深化 | 远期 | 与 APP「寻找张怀民」联动留言墙、睡眠画像互通 |
 
 ## 许可
 

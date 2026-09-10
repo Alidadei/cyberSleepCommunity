@@ -1,4 +1,4 @@
-# 数据契约 DATA_CONTRACT v1
+# 数据契约 DATA_CONTRACT v1.1
 
 > 本文件是「睡眠站台」安卓 APP 与 cyberSleepCommunity 网站的**共同宪法**。
 > 任何一端修改本契约，必须同步修改另一端并在此记录版本号。
@@ -32,6 +32,11 @@ APP 端 Gson 反序列化：缺失字段取默认值（ratings=null 视作空、
 | `null` | 未分类 | 提交时可不确定 |
 
 `"all"` 仅是 APP UI 的筛选值，**不得存入数据**。
+
+> **v1.1（2026-09-10）**：type 取值域扩展——除内置四类 key 外，允许**自定义标签**：
+> ≤12 字符的任意字符串（去首尾空白），例如「白噪音」「ASMR」。结构不变（仍是 string）。
+> 展示规则：两端遇到未知 type 时**原样显示该字符串**（APP 端 RelaxFragment 需在下一次
+> 更新时兼容：未知 key 不再丢弃/报错，直接展示原文）。网站端已实现（`# 标签` 样式）。
 
 ## 3. 排序与聚合（两端必须一致）
 
@@ -75,6 +80,11 @@ P0 两端**不直接互通**（无后端）。网站提供「导出 JSON / 导�
 - 两端 URL/ANON_KEY 放在各自的配置点：APP=`BuildConfig` 字段或远程 JSON，网站=`config.js`
 
 P1 完成后 P0 的 localStorage 数据用「导入 JSON」按钮一次性迁移。
+
+> 实现进度（2026-09-09）：网站端 `SupabaseStore` 已写入 `index.html`（原生 fetch，同
+> LocalStore 的 load/save/add/rate 异步接口），建表脚本见 `docs/supabase-schema.sql`；
+> 在 `index.html` 顶部 `SUPABASE = { url, anonKey }` 填入两值即启用，留空维持本机存储。
+> APP 端 `RemoteStore.kt` 尚未动工，换源点见 §6 上文。
 
 ## 7. 兼容性红线
 

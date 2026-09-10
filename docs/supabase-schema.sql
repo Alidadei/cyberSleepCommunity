@@ -16,7 +16,8 @@ create table if not exists community_picks (
   url       text    not null,            -- http(s) 链接
   type      text,                        -- anxiety/excitement/physical/noise 或 null
   ratings   int[]   not null default '{}',  -- 每项 1–5，打分=读回追加后整体 PATCH
-  "addedAt" bigint  not null             -- epoch 毫秒
+  "addedAt" bigint  not null,            -- epoch 毫秒
+  recommend_count int not null default 1  -- 同 URL 被提交的次数（重复提交 recommend_count+1，≥2 卡片展示）
 );
 
 -- 无账号社区：anon 角色即可读/写，权限靠 GRANT（表级）+ RLS（行级）双保险。
@@ -36,3 +37,7 @@ create policy "anon update" on community_picks
 -- 已知限制（有意取舍，P3 再收紧）：
 -- anon update 不限制列，任何人可以覆盖任意行的 ratings 数组（并发打分互相覆盖）。
 -- 社区规模小、内容无敏感数据，先接受；后续可拆 ratings 子表 + insert-only 策略。
+--
+-- 已有表升级 recommend_count（v1.2）：
+-- ALTER TABLE community_picks ADD COLUMN IF NOT EXISTS recommend_count int not null default 1;
+-- UPDATE community_picks SET recommend_count = 1 WHERE recommend_count IS NULL;

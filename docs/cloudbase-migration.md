@@ -2,7 +2,7 @@
 
 > ⚠️ 状态（2026-09-10）：**本方案暂缓**。数据后端当前先用官方 Supabase 免费档试跑
 > （见 `docs/supabase-quickstart.md`），观察境内延迟；若延迟不能接受，再按本指南切 CloudBase。
-> 域名方案单独走 `docs/deploy-guide.md`（CloudBase 静态托管为主 + GitHub Pages 兜底）。
+> 域名方案单独走 `docs/deploy-guide.md`（当前 GitHub Pages 主 + CloudBase 备）；统一进度见 `docs/ROADMAP.md`。
 >
 > 结论：站主与访客均在境内，官方 Supabase 的 `.supabase.co` 域名国内直连不稳，且后续要接入
 > 用户画像 + AI 推荐（需要 pgvector 向量检索与中文分词）。腾讯云 CloudBase PG 模式是「Supabase

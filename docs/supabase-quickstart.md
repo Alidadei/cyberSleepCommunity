@@ -2,7 +2,7 @@
 
 > 决策（2026-09-10）：数据后端先用官方 Supabase 免费档试跑，观察境内延迟能否接受；
 > 若不行再按 `docs/cloudbase-migration.md` 切腾讯云 CloudBase(PG 模式)。
-> 域名方案独立：CloudBase 静态托管为主 + GitHub Pages 兜底，见 `docs/deploy-guide.md`。
+> 域名方案独立（GitHub Pages 主 + CloudBase 备），见 `docs/deploy-guide.md`；统一进度见 `docs/ROADMAP.md`。
 
 ## 一、开通步骤（约 10 分钟）
 

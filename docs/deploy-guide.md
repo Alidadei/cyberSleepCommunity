@@ -1,8 +1,21 @@
-# 部署与域名指南：CloudBase 静态托管为主 + GitHub Pages 兜底
+# 部署与域名指南：GitHub Pages 主（暂）+ CloudBase 备
 
 > 决策（2026-09-10）：站点是单文件零依赖，没有任何构建产物——`index.html` 即全部。
-> 域名策略：**CloudBase 静态托管为主（国内快、可绑自定义域名）**，
-> **GitHub Pages 为兜底（海外/主站维护时可开）**。
+> **决策更新：暂以 GitHub Pages 为主站**（仓库 `Settings → Pages → Deploy from branch: main`，地址
+> `https://alidadei.github.io/cyberSleepCommunity/`），免费、零运维、立即可用。
+> CloudBase 静态托管暂缓：等数据后端（Supabase 境外延迟测试）定论后再决定要不要开（境内快、可绑自定义域名，但需手动上传 + ICP 备案）。
+>
+> 统一进度清单见 **docs/ROADMAP.md**（本文件只讲方案）。
+
+## 〇、双域支持的代码实现（已落地）
+
+- 站内**零绝对自引用**：`assets/`、分享文本、导入/导出全部走相对路径或动态 `location`，换域无需改码。
+- `index.html` 顶部配置 `const SITE = { primaryOrigin: '' }`：留空时 canonical 自动用「当前域」（含 GH 子路径 `/cyberSleepCommunity/`），
+  部署即用；以后切自定义域/CloudBase 时填「主站首页完整地址」，运行时自动注入
+  `<link rel="canonical">` + `og:url/og:title/og:description/og:type/og:image`（og:image 用同目录 `assets/shoushu.jpg`）。
+- 数据层：云端读写走 Supabase 绝对地址（默认放开 CORS），双域读写同一张 `community_picks`，内容天然互通。
+- **已知隔离**：`localStorage` 按域隔离——`csc_lang`（语言）、`csc_sample_ratings`（样例评分）两个域不互通，
+  属可接受行为（样例评分本是本地演示数据；真数据在云端不受影响）。
 
 ## 一、为什么双线
 
@@ -16,21 +29,25 @@
 
 双线的意义：主站（CloudBase）挂掉时，把兜底入口切给 GitHub Pages——内容唯一（一个 `index.html`），互不牵连。
 
-## 二、CloudBase 静态托管部署（主）
+## 二、CloudBase 静态托管（暂缓，备选）
 
-1. 已在 `docs/cloudbase-migration.md` 步骤里创建的免费体验环境（上海）。
-2. 控制台 → **静态网站托管** → 上传 `index.html`（若 `assets/` 有图一并上传到对应目录）。
-3. 得到默认域名 `https://<envId>-<hash>.tcloudbaseapp.com`，即可访问。
-4. 想要自己的域名（可选）：
+> 当前不做主站。**触发条件**：数据后端定为 CloudBase(PG 模式) 或 GH Pages 境外访问不可接受时再启用。
+> 启用流程见 `docs/cloudbase-migration.md`（环境在上海/PG 模式）+ 下方上传步骤。
+
+1. 控制台 → **静态网站托管** → 上传 `index.html`（若 `assets/` 有图一并上传到对应目录）。
+2. 得到默认域名 `https://<envId>-<hash>.tcloudbaseapp.com`，即可访问。
+3. 想要自己的域名（可选）：
    - 买域名（腾讯云/阿里云）→ CloudBase 静态托管「自定义域名」绑定
    - 大陆节点需 **ICP 备案**（免费，约 1–2 周；备案期间可先用默认域名）
    - 海外加速可选套 EdgeOne，非必须
 
-## 三、GitHub Pages 兜底
+## 三、GitHub Pages（当前主站）
 
 1. 仓库 Settings → **Pages** → Source 选 `Deploy from a branch` → `main` + 根目录。
-2. 发布后地址 `https://<user>.github.io/cyberSleepCommunity/`。
-3. （可选）在仓库根加 `CNAME` 文件并到域名商加记录，让 GitHub Pages 也走同一域名做 CDN 级兜底——此时建议 CloudBase 走 A 记录、Pages 走 CNAME 的 `www`，避免抢解析。
+2. 发布后地址 `https://alidadei.github.io/cyberSleepCommunity/`。
+3. 部署即用：canonical/og 在 `SITE.primaryOrigin` 留空时自动取当前域（含子路径）。
+   若以后启用 CloudBase 主站，把 `SITE.primaryOrigin` 填成主站首页完整地址即可，两域不再互判重复内容。
+4. （可选）仓库根加 `CNAME` + 域名商记录，把 GitHub Pages 绑到自己的域名。
 
 ## 四、内容同步（唯一一份 `index.html`）
 
@@ -59,4 +76,4 @@ jobs:
 
 ## 五、访问兜底话术（用户视角）
 
-- 站点可加一行提示：「主站维护中，请访问备站 <GitHub Pages 地址>」（暂不做，按需再加）。
+- 主站（GH Pages）故障时，可临时加一行提示指向备站（CloudBase 默认域，需先部署）——暂不做，按需再加。

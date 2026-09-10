@@ -14,12 +14,14 @@
   "url": "https://...",         // string，http/https，可带 query 参数
   "type": "anxiety",            // string|null，见 §2
   "ratings": [4, 5, 3],         // int 数组，每项 1–5，来自所有打分用户
-  "addedAt": 1725000000000      // number，epoch 毫秒
+  "addedAt": 1725000000000,     // number，epoch 毫秒
+  "recommendCount": 3           // number，≥1（同一 URL 被提交的次数；重复提交 recommendCount+1，保留首条标题/类型；≥2 时卡片展示「被推荐 N 次」）
 }
 ```
 
-APP 端 Gson 反序列化：缺失字段取默认值（ratings=null 视作空、type=null 视作未分类、addedAt=0）。
-网站端 localStorage 序列化必须使用**完全相同的字段名**，禁止改名/改型。
+APP 端 Gson 反序列化：缺失字段取默认值（ratings=null 视作空、type=null 视作未分类、addedAt=0、recommendCount=1）。
+网站端 localStorage / Supabase 序列化必须使用**完全相同的字段名**，禁止改名/改型。
+提交合并语义（v1.2）：同一 URL 重复提交 → recommendCount+1（保留首条 title/type），不再作为错误拦截（仅内置精选不可合并）；卡片推荐次数 ≥2 时展示「被推荐 N 次」，不影响排序。
 
 ## 2. 失眠类型标签（type）
 

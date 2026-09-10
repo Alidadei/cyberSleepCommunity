@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="赛博睡眠社区 cyberSleep——一个专门收录让人犯困内容的打分网站，数据联通「睡眠站台」APP。无广告 · 无追踪 · 无账号。">
   <title>赛博睡眠社区 cyberSleep · 犯困内容收藏馆</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23271f36'/%3E%3Cpath transform='translate(6 5) scale(1.55)' d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z' fill='%23e6d3e8'/%3E%3Cpath d='M47 8l1.3 3.2 3.2 1.3-3.2 1.3L47 17l-1.3-3.2-3.2-1.3 3.2-1.3z' fill='%23f0c987'/%3E%3Cpath d='M13 54l1.1 2.7 2.7 1.1-2.7 1.1L13 61.6l-1.1-2.7-2.7-1.1 2.7-1.1z' fill='%23b8d0f0'/%3E%3Cg stroke='%23b8d0f0' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round' fill='none'%3E%3Cpath d='M44 23h9l-9 9h9'/%3E%3Cpath d='M37 38h11l-11 11h11' stroke-width='4'/%3E%3Cpath d='M30 51h12l-12 12h12' stroke-width='4.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -189,6 +190,7 @@
       justify-content: center;
       padding: 28px 20px;
       cursor: pointer;
+      overflow: hidden;
       transition: opacity .8s ease
     }
 
@@ -199,6 +201,10 @@
 
     .intro-paper {
       max-width: 620px;
+      max-height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       color: var(--ink)
     }
 
@@ -243,6 +249,21 @@
     @keyframes introCaret {
       50% {
         opacity: 0
+      }
+    }
+
+    @media (max-width:640px) {
+      #intro {
+        padding: 16px 14px
+      }
+
+      .intro-text {
+        font-size: 15px;
+        line-height: 1.95
+      }
+
+      .intro-sign {
+        font-size: 14px
       }
     }
 
@@ -485,7 +506,7 @@
     }
 
     input::placeholder {
-      color: rgb(var(--sub-rgb)/.55)
+      color: rgb(var(--sub-rgb)/.78)
     }
 
     input:focus,
@@ -539,7 +560,7 @@
 
     .label {
       font-size: 13px;
-      color: var(--sub)
+      color: rgb(var(--ink-rgb)/.92)
     }
 
     #list {
@@ -793,7 +814,9 @@
       position: fixed;
       top: 52px;
       right: 16px;
-      z-index: 20;
+      z-index: 26;
+      /* 层级：排行覆盖层(25)之下显示不了表单——提高源码注订单：
+         排行覆盖层 25 < 发布面板 26 < 导航栏 30 < 汉堡按钮 31 < 手书灯箱 40 < 入场遮罩 100 */
       width: min(420px, calc(100vw - 32px));
       overflow: auto;
       background: var(--card);
@@ -803,6 +826,7 @@
       opacity: 0;
       padding: 0 18px;
       visibility: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
       transition: max-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, visibility .3s
     }
 
@@ -827,7 +851,7 @@
 
     .hint {
       font-size: 12px;
-      color: var(--sub);
+      color: rgb(var(--ink-rgb)/.72);
       text-align: center;
       margin-top: 6px
     }
@@ -941,6 +965,14 @@
     .hamburger.open svg line:nth-child(3) {
       transform: rotate(-45deg);
       transform-origin: 12px 18px
+    }
+
+    /* 移动端显示汉堡按钮。必须放在上方 .hamburger{display:none} 之后才能赢下层叠，
+       源顺序上被同名规则盖住是「手机端汉堡不可见」的根因 */
+    @media (max-width:640px) {
+      .hamburger {
+        display: block
+      }
     }
 
     /* 全屏排行榜覆盖层 */
@@ -1105,7 +1137,7 @@
     <div class="msg toast" id="ioMsg" aria-live="polite"></div>
     <div class="panel" id="formPanel">
       <div class="form">
-        <h3 id="formTitle">推荐一条犯困内容</h3>
+        <h3 id="formTitle">推荐任意让你犯困的小说、视频、播客…</h3>
         <div class="label" id="labelTitle">标题</div>
         <input id="fTitle" placeholder="例：雨声助眠 8 小时（留空可自动从链接抓取）">
         <div class="label" id="labelUrl">链接</div>
@@ -1113,7 +1145,7 @@
         <div class="label" id="labelType">适合哪类失眠的人（选填）</div>
         <input id="fType" list="typeList" placeholder="例如：白噪音、ASMR（选填，可自定义标签）" maxlength="12">
         <datalist id="typeList"></datalist>
-        <button class="btn" id="fSubmit">发布推荐</button>
+        <button class="btn" id="fSubmit">提交推荐</button>
         <div class="msg" id="fMsg" aria-live="polite"></div>
         <div class="hint" id="formHint">含广告卖货 / 联系方式的内容会被直接拦下（与 APP 同一套 AdGuard 规则）</div>
         <input type="file" id="fileImport" accept=".json" style="display:none">
@@ -1167,6 +1199,43 @@
                                    anonKey=Publishable Key（详见 docs/cloudbase-migration.md） ---- */
     const SUPABASE = { url: 'https://ttvaedbukdwpvdtmodeo.supabase.co', anonKey: 'sb_publishable_buDoQC3OdWau8DdtUY9moQ_YbK5UgSm' };
 
+    /* ---- 站点域名配置（双域名支持）：主站 = GitHub Pages，备站 = CloudBase（暂缓）
+        primaryOrigin 填主站首页的「完整地址」（含子路径，如 'https://alidadei.github.io/cyberSleepCommunity/'），
+        用于 canonical/og 去重（两域共用一份 index.html，搜索爬虫不判重复内容）。
+        留空 = 先用「当前所在域」做 canonical（部署初期零配置即生效）。
+        数据层不受影响：云端读写走 Supabase 绝对地址，站内资源全是相对路径，双域零改动。 ---- */
+    const SITE = { primaryOrigin: '' };
+    (function injectSiteMeta() {
+      try {
+        const loc = typeof location !== 'undefined' ? location : null;
+        const canon = SITE.primaryOrigin
+          ? new URL(SITE.primaryOrigin).href
+          : new URL((loc && loc.pathname) || '/', (loc && loc.origin) || '').href;
+        const head = (document.head || (document.documentElement && document.documentElement.appendChild ? document.documentElement : null));
+        if (!head || typeof document.createElement !== 'function') return;
+        const has = k => document.head ? document.head.querySelector(k) : null;
+        if (!has('link[rel="canonical"]')) {
+          const link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          link.setAttribute('href', canon);
+          head.appendChild(link);
+        }
+        const og = [
+          ['og:url', canon],
+          ['og:type', 'website'],
+          ['og:title', document.title || '电子安眠药 · 犯困内容打分网站'],
+          ['og:description', '赛博睡眠社区——一个专门收录让人犯困内容的打分网站，数据联通「睡眠站台」APP。'],
+          ['og:image', new URL('assets/shoushu.jpg', canon).href]
+        ];
+        for (const [prop, content] of og) {
+          const meta = document.createElement('meta');
+          meta.setAttribute('property', prop);
+          meta.setAttribute('content', content);
+          head.appendChild(meta);
+        }
+      } catch (e) { /* 测试桩/旧环境无 head 时静默，不影响功能 */ }
+    })();
+
     /* ---- 内置精选：与 APP assets/relax_picks.json 同步（每型一条样例+示例评分，
        真实用户评分接入后用聚合值替换 sampleRatingAvg/sampleRatingCount） ---- */
     const BUILTIN = [
@@ -1208,8 +1277,15 @@
       },
       async add(title, url, type) {
         const picks = await this.load();
-        picks.push({ id: Date.now(), title, url, type: type || null, ratings: [], addedAt: Date.now() });
+        const dup = picks.find(p => urlKey(p.url) === urlKey(url));
+        if (dup) {
+          dup.recommendCount = (dup.recommendCount || 1) + 1;
+          await this.save(picks);
+          return { merged: true, count: dup.recommendCount };
+        }
+        picks.push({ id: Date.now(), title, url, type: type || null, ratings: [], addedAt: Date.now(), recommendCount: 1 });
         await this.save(picks);
+        return { merged: false, count: 1 };
       },
       async rate(id, score) {
         const picks = await this.load();
@@ -1241,7 +1317,7 @@
         return { apikey: SUPABASE.anonKey, Authorization: 'Bearer ' + (this._tok || SUPABASE.anonKey), 'Content-Type': 'application/json' };
       },
       async load() {
-        const r = await fetch(this.rest('community_picks?select=id,title,url,type,ratings,addedAt&order=addedAt.desc&limit=1000'), { headers: await this.headers() });
+        const r = await fetch(this.rest('community_picks?select=id,title,url,type,ratings,addedAt,recommend_count&order=addedAt.desc&limit=1000'), { headers: await this.headers() });
         if (!r.ok) throw new Error('load ' + r.status);
         return r.json();
       },
@@ -1256,9 +1332,21 @@
         if (!r.ok) throw new Error('save ' + r.status);
       },
       async add(title, url, type) {
-        const row = { id: Date.now(), title, url, type: type || null, ratings: [], addedAt: Date.now() };
+        /* 同 URL 合并语义（契约 §1 §6）：命中已存在行 → recommend_count+1（保留首条标题/类型），否则新插入 */
+        const q = await fetch(this.rest('community_picks?url=eq.' + encodeURIComponent(url) + '&select=id,recommend_count'), { headers: await this.headers() });
+        if (!q.ok) throw new Error('add query ' + q.status);
+        const rows = await q.json();
+        if (rows.length) {
+          const r = await fetch(this.rest('community_picks?id=eq.' + rows[0].id), {
+            method: 'PATCH', headers: await this.headers(), body: JSON.stringify({ recommend_count: (rows[0].recommend_count || 1) + 1 })
+          });
+          if (!r.ok) throw new Error('add merge ' + r.status);
+          return { merged: true, count: (rows[0].recommend_count || 1) + 1 };
+        }
+        const row = { id: Date.now(), title, url, type: type || null, ratings: [], addedAt: Date.now(), recommend_count: 1 };
         const r = await fetch(this.rest('community_picks'), { method: 'POST', headers: await this.headers(), body: JSON.stringify(row) });
         if (!r.ok) throw new Error('add ' + r.status);
+        return { merged: false, count: 1 };
       },
       /* 打分 = 读回 ratings 数组，追加后整体 PATCH（契约 §6 的既定做法，接受并发覆盖） */
       async rate(id, score) {
@@ -1399,7 +1487,8 @@
         ? o.ratings.map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 5) : [];
       const addedAt = Number.isFinite(o.addedAt) ? Math.trunc(o.addedAt) : id;
       const type = TYPES.some(t => t.key === o.type) ? o.type : null;
-      return { id, title, url, type, ratings, addedAt };
+      const recommendCount = Number.isFinite(o.recommendCount) && o.recommendCount > 0 ? Math.trunc(o.recommendCount) : 1;
+      return { id, title, url, type, ratings, addedAt, recommendCount };
     }
     function findDup(url) {
       const k = urlKey(url);
@@ -1726,6 +1815,7 @@
         } else {
           m.appendChild(document.createTextNode(hostOf(url)));
         }
+        if ((pick.recommendCount || 1) > 1) m.appendChild(document.createTextNode(' · ' + t('rec_times')(pick.recommendCount)));
       } else if (builtin && builtin.sampleRatingAvg != null) {
         m.appendChild(starMark());
         m.appendChild(document.createTextNode(' ' + t('ratings')(builtin.sampleRatingAvg.toFixed(1), builtin.sampleRatingCount)));
@@ -1816,16 +1906,18 @@
       const verdict = ADGUARD.check(title + ' ' + url + ' ' + (type || ''));
       if (!verdict.ok) { msg.classList.add('bad'); msg.textContent = t(verdict.code)(verdict.param); return; }
       const dup = findDup(url);
-      if (dup) { msg.classList.add('bad'); msg.textContent = t('dup')(dup.title.slice(0, 24)); return; }
+      /* 内置精选不可合并（无社区行）：依旧提示已收录；社区重复提交 → Store.add 自动合并次数 */
+      if (dup && dup.sample) { msg.classList.add('bad'); msg.textContent = t('dup_builtin')(dup.title.slice(0, 24)); return; }
 
       try {
-        await Store.add(title.slice(0, 80), url, type);
+        const res = await Store.add(title.slice(0, 80), url, type);
         document.getElementById('fTitle').value = '';
         document.getElementById('fUrl').value = '';
         document.getElementById('fType').value = '';
         msg.classList.add('ok');
-        msg.textContent = t('prescribed');
+        msg.textContent = res && res.merged ? t('merged_ok')(res.count) : t('prescribed');
         await refresh();
+        rerenderRanking();
       } catch (e) {
         msg.classList.add('bad');
         msg.textContent = t('publish_fail');
@@ -1834,6 +1926,7 @@
 
     /* ================= 导出/导入（P0 迁移通道，契约 §5；导入按 id/URL 合并去重） ================= */
     document.getElementById('navExport').onclick = async () => {
+      closeHamburger();
       const data = await Store.load();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -1841,7 +1934,7 @@
       a.download = 'cyberSleep_picks.json';
       a.click();
     };
-    document.getElementById('navImport').onclick = () => document.getElementById('fileImport').click();
+    document.getElementById('navImport').onclick = () => { closeHamburger(); document.getElementById('fileImport').click(); };
     document.getElementById('fileImport').onchange = async e => {
       const f = e.target.files[0];
       e.target.value = '';
@@ -1881,6 +1974,9 @@
       navPublish.setAttribute('aria-expanded', 'false');
     }
     navPublish.onclick = () => {
+      /* 榜单页打开表单时保留榜单（面板 z-26 浮在覆盖层 z-25 之上），
+         提交后 rerenderRanking() 原地刷新——用户停留在当前推荐页，不再跳回主页 */
+      closeHamburger();
       const open = !formPanel.classList.contains('open');
       formPanel.classList.toggle('open', open);
       navPublish.setAttribute('aria-expanded', String(open));
@@ -1897,6 +1993,8 @@
       navLetter.setAttribute('aria-expanded', 'false');
     }
     navLetter.onclick = () => {
+      closeRankingPage();
+      closeHamburger();
       const open = !letterBox.classList.contains('open');
       letterBox.classList.toggle('open', open);
       navLetter.setAttribute('aria-expanded', String(open));
@@ -1905,6 +2003,7 @@
     /* 语言切换：中 ↔ EN，存 localStorage，切换即时生效 */
     const navLangBtn = document.getElementById('navLang');
     navLangBtn.onclick = () => {
+      closeHamburger();
       lang = lang === 'zh' ? 'en' : 'zh';
       try { localStorage.setItem(LANG_KEY, lang); } catch (e) { }
       applyLang();
@@ -1964,15 +2063,18 @@
         nav_prescribe: '推荐药方', nav_letter: '手书', nav_export: '导出', nav_import: '导入',
         chip_all: '全部',
         type_anxiety: '焦虑型', type_excitement: '兴奋型', type_physical: '生理型', type_noise: '噪音干扰型',
-        form_title: '推荐一条犯困内容',
+        form_title: '推荐任意让你犯困的小说、视频、播客…',
         label_title: '标题', ph_title: '例：雨声助眠 8 小时（留空可自动从链接抓取）',
         label_url: '链接', ph_url: 'https:// …（B站分享文本直接粘贴也行）',
         label_type: '适合哪类失眠的人（选填）',
         opt_none: '不确定 / 通用', opt_anxiety: '焦虑型 · 思绪停不下来', opt_excitement: '兴奋型 · 大脑过电影', opt_physical: '生理型 · 浑身不得劲', opt_noise: '噪音干扰型 · 环境吵',
-        submit: '发布推荐', form_hint: '含广告卖货 / 联系方式的内容会被直接拦下（与 APP 同一套 AdGuard 规则）',
+        submit: '提交推荐', form_hint: '含广告卖货 / 联系方式的内容会被直接拦下（与 APP 同一套 AdGuard 规则）',
         prescribed: '已发布 ✓ 感谢为同类型的失眠伙伴添砖加瓦', publish_fail: '发布失败，请稍后再试',
         invalid_url: '链接无效，请检查',
         dup: t24 => `这条已经在社区里了（${t24}），直接去给它打个分吧`,
+        dup_builtin: t24 => `与内置精选「${t24}」是同一内容，已收录——直接去给它打个分吧`,
+        merged_ok: n => `已收录，推荐次数 +1（共被推荐 ${n} 次）`,
+        rec_times: n => `被推荐 ${n} 次`,
         ad_contact: p => `未发布：疑似联系方式/短链：${p}`, ad_strong: k => `未发布：疑似推广关键词：${k}`, ad_weak: n => `未发布：广告特征过多（命中 ${n} 项）`,
         import_ok: (a, s) => `已导入 ${a} 条${s ? ` · 跳过 ${s} 条重复/无效` : ''}`,
         import_bad_json: 'JSON 解析失败', import_bad_fmt: '文件格式不对（需要 CommunityPick 数组，见数据契约 §1）', import_fail: '导入失败，请稍后再试',
@@ -2005,15 +2107,18 @@
         nav_prescribe: 'Prescribe', nav_letter: 'Letter', nav_export: 'Export', nav_import: 'Import',
         chip_all: 'All',
         type_anxiety: 'Anxiety', type_excitement: 'Excitement', type_physical: 'Physical', type_noise: 'Noise',
-        form_title: 'Share something sleep-inducing',
+        form_title: 'Recommend anything that lulls you to sleep — novels, videos, podcasts…',
         label_title: 'Title', ph_title: 'e.g. Rain sounds for sleep (leave blank to auto-fetch the title)',
         label_url: 'Link', ph_url: 'https:// … (pasting a share text works too)',
         label_type: 'Who is it for? (optional)',
         opt_none: 'Not sure / General', opt_anxiety: 'Anxiety · racing mind', opt_excitement: 'Excitement · mind keeps replaying the day', opt_physical: 'Physical · body won\'t settle', opt_noise: 'Noise · the world is too loud',
-        submit: 'Prescribe', form_hint: 'Ads and solicitation are filtered automatically (same rules as the Sleep Station app)',
+        submit: 'Submit', form_hint: 'Ads and solicitation are filtered automatically (same rules as the Sleep Station app)',
         prescribed: 'Prescribed ✓ thanks for helping fellow sleepless souls', publish_fail: 'Failed to publish, please try again later',
         invalid_url: 'That link doesn\'t look right',
         dup: t24 => `Already in the collection ("${t24}") — go rate it instead`,
+        dup_builtin: t24 => `This is the built-in pick "${t24}" — already collected, go rate it instead`,
+        merged_ok: n => `Noted, recommendation count +1 (${n} total)`,
+        rec_times: n => `Recommended ${n}×`,
         ad_contact: p => `Not published: looks like contact info / short link: ${p}`, ad_strong: k => `Not published: looks like an ad: ${k}`, ad_weak: n => `Not published: too many ad cues (${n} hits)`,
         import_ok: (a, s) => `Imported ${a} item(s)${s ? ` · skipped ${s} duplicate/invalid` : ''}`,
         import_bad_json: 'Failed to parse JSON', import_bad_fmt: 'Wrong format (expected a CommunityPick array, see data contract §1)', import_fail: 'Import failed, please try again later',

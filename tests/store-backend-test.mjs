@@ -79,4 +79,30 @@ function run(config) {
   ok(!calls.some(c => c.url.includes('/auth/v1/signin/anonymously')), '官方后端不触发匿名登录');
 }
 
+/* ---------- merge次数：同一 URL 第二次 add → PATCH recommend_count+1 ---------- */
+{
+  let queryHits = 0;
+  const cfg = { url: 'https://abcdefgh.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiJ9.XXX' };
+  const calls = [];
+  const fetch = async (url, opts = {}) => {
+    calls.push({ url: String(url), method: opts.method || 'GET', body: opts.body || null, headers: opts.headers || {} });
+    if (String(url).includes('/auth/v1/signin/anonymously')) return { ok: true, status: 200, json: async () => ({ access_token: 'TOK' }) };
+    const kind = (opts.method || 'GET').toUpperCase();
+    if (kind === 'GET' && String(url).includes('select=id,recommend_count')) {
+      if (queryHits++ > 0) return { ok: true, status: 200, json: async () => [{ id: 999, recommend_count: 1 }] };
+      return { ok: true, status: 200, json: async () => [] };
+    }
+    return { ok: true, status: 201, json: async () => ({}) };
+  };
+  const sandbox = { SUPABASE: cfg, fetch, Date, console };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  new vm.Script(block).runInContext(sandbox);
+  const s = sandbox.SupabaseStore;
+  await s.add('首', 'https://example.com/m', 'noise');
+  await s.add('次', 'https://example.com/m', 'anxiety');
+  const patch = calls.find(c => c.method === 'PATCH' && c.body);
+  ok(patch && JSON.parse(patch.body).recommend_count === 2, 'merge 同 URL 第二次 add → PATCH recommend_count=2', patch && JSON.parse(patch.body));
+}
+
 console.log('ALL PASS: ' + pass + ' assertions');

@@ -22,6 +22,15 @@ const script = scripts.join('\n')
   /* 中和云端配置：测试永远走 LocalStore，不随 index.html 里填写的 SUPABASE 值联网 */
   .replace(/const SUPABASE = \{[^}]*\};/, "const SUPABASE = { url: '', anonKey: '' };");
 
+/* 双域配置红线：SITE.primaryOrigin 与 canonical 注入必须存在 */
+if (!/const SITE = \{ primaryOrigin: '' \};/.test(script)) throw new Error('SITE 双域配置缺失');
+if (!script.includes("link.setAttribute('rel', 'canonical')")) throw new Error('canonical 注入缺失');
+/* 层级红线：发布面板 z-index 必须高于排行覆盖层（25），否则榜单页内表单不可见 →「提交跳回主页」反复发 */
+if (!/\.panel \{[\s\S]*?z-index:\s*26/.test(html)) throw new Error('面板层级 ≤ 榜单覆盖层');
+const hbNone = html.search(/\.hamburger \{[\r\n]+ *display: none/);
+if (hbNone < 0) throw new Error('汉堡基规则缺失');
+if (html.slice(hbNone).search(/\.hamburger \{[\r\n]+ *display: block/) < 0) throw new Error('汉堡显隐层叠顺序错误（display:block 必须位于 display:none 之后）');
+
 /* 红线：不得出现 prompt()/alert()/confirm() */
 for (const banned of ['prompt(', 'alert(', 'confirm(']) {
   if (script.includes(banned)) throw new Error('red line violated: ' + banned);
@@ -222,16 +231,16 @@ const submitResult = await g('fSubmit').onclick().then(() => 'resolved').catch(e
 ok(submitResult === 'resolved' && g('fMsg').classList.contains('ok'), '发布成功反馈 ok 态', g('fMsg').textContent);
 ok(store().length === 1, '数据入库（契约字段）', store());
 
-/* ---------- 3. URL 去重提示 ---------- */
+/* ---------- 3. 同 URL 合并语义（社区重复 → recommendCount+1；内置精选不可合并） ---------- */
 g('fTitle').value = '换个标题再发一次';
 g('fUrl').value = 'https://www.bilibili.com/video/BV1xx411c7mD?share_source=copy_web';
 await g('fSubmit').onclick();
-ok(g('fMsg').classList.contains('bad') && g('fMsg').textContent.includes('已经在社区里了'), '同链接被去重拦下', g('fMsg').textContent);
-ok(store().length === 1, '去重不重复入库');
+ok(g('fMsg').classList.contains('ok') && g('fMsg').textContent.includes('推荐次数 +1'), '同链接合并次数+1', g('fMsg').textContent);
+ok(store().length === 1 && store()[0].recommendCount === 2, '不重复入库，次数递增', store()[0].recommendCount);
 g('fTitle').value = '';
 g('fUrl').value = 'http://m.bilibili.com/search/?keyword=%E9%9B%A8%E5%A3%B0%E5%8A%A9%E7%9C%A08%E5%B0%8F%E6%97%B6';
 await g('fSubmit').onclick();
-ok(g('fMsg').textContent.includes('已经在社区里了（雨声助眠 8 小时 · 雨打窗台）'), '与内置精选同链也被拦（协议/尾斜杠归一）', g('fMsg').textContent);
+ok(g('fMsg').classList.contains('bad') && g('fMsg').textContent.includes('与内置精选'), '与内置精选同链仍拦截（无法合并）', g('fMsg').textContent);
 
 /* ---------- 4. AdGuard 拦截 ---------- */
 g('fTitle').value = '兼职刷单加微信 abc12345';
@@ -246,6 +255,7 @@ await sleep(10);
 ok(cards().length === 1 && cardTitle(cards()[0]).includes('深海鲸鱼'), '「无类型」节点收录未分类推荐', cards().length);
 const whaleCard = cards()[0];
 ok(whaleCard.children[1].textContent.includes('bilibili.com'), '暂无评分时显示来源域名', whaleCard.children[1].textContent);
+ok(whaleCard.children[1].textContent.includes('被推荐 2 次'), '合并后卡片显示推荐次数', whaleCard.children[1].textContent);
 const rateBtn = whaleCard.querySelectorAll('.rate')[0];
 ok(rateBtn.getAttribute('aria-expanded') === 'false', '评分按钮初始收起');
 rateBtn.onclick();
@@ -304,6 +314,26 @@ ok(!g('formPanel').classList.contains('open'), '再点收起面板');
 g('navPublish').onclick();
 docHandlers.keydown.forEach(fn => fn({ key: 'Escape' }));
 ok(!g('formPanel').classList.contains('open'), 'ESC 关闭面板');
+ok(g('formTitle').textContent === '推荐任意让你犯困的小说、视频、播客…', '表单标题文案', g('formTitle').textContent);
+ok(g('fSubmit').textContent === '提交推荐', '提交按钮文案', g('fSubmit').textContent);
+
+/* ---------- 9b. 排行榜页内导航可用 + 汉堡菜单点选收起 ---------- */
+clickNode('噪音干扰型');
+ok(g('rankingOverlay').classList.contains('open'), '排行榜页已打开（前置）');
+g('navPublish').onclick();
+ok(g('rankingOverlay').classList.contains('open'), '排行榜页中点「推荐药方」榜单保留');
+ok(g('formPanel').classList.contains('open'), '并展开发布面板');
+g('navPublish').onclick();
+clickNode('噪音干扰型');
+g('hamburgerBtn').onclick();
+ok(g('mainNav').classList.contains('open'), '汉堡打开移动端菜单');
+g('navPublish').onclick();
+ok(!g('mainNav').classList.contains('open'), '菜单内点「推荐药方」自动收起菜单');
+ok(g('formPanel').classList.contains('open'), '且发布面板展开可见');
+g('navPublish').onclick();
+clickNode('噪音干扰型');
+docHandlers.keydown.forEach(fn => fn({ key: 'Escape' }));
+ok(!g('rankingOverlay').classList.contains('open') && !g('formPanel').classList.contains('open'), 'ESC 一并收起榜单/面板');
 
 /* ---------- 10. 导入合并去重 + APP 同款徽章 ---------- */
 const fileRow = [

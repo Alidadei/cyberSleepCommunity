@@ -1487,7 +1487,7 @@
         ? o.ratings.map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 5) : [];
       const addedAt = Number.isFinite(o.addedAt) ? Math.trunc(o.addedAt) : id;
       const type = TYPES.some(t => t.key === o.type) ? o.type : null;
-      const recommendCount = Number.isFinite(o.recommendCount) && o.recommendCount > 0 ? Math.trunc(o.recommendCount) : 1;
+      const recommendCount = Number.isFinite(o.recommend_count) ? Math.trunc(o.recommend_count) : (Number.isFinite(o.recommendCount) && o.recommendCount > 0 ? Math.trunc(o.recommendCount) : 1);
       return { id, title, url, type, ratings, addedAt, recommendCount };
     }
     function findDup(url) {

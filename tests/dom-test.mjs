@@ -18,7 +18,9 @@ for (const id of ['list','loadMsg','brandTitle','subtitle','navLang','formTitle'
 const scripts = html.match(/<script>[\s\S]*?<\/script>/g)
   .map(s => s.replace(/<\/?script>/g, ''));
 if (!scripts.length) throw new Error('script not found');
-const script = scripts.join('\n');
+const script = scripts.join('\n')
+  /* 中和云端配置：测试永远走 LocalStore，不随 index.html 里填写的 SUPABASE 值联网 */
+  .replace(/const SUPABASE = \{[^}]*\};/, "const SUPABASE = { url: '', anonKey: '' };");
 
 /* 红线：不得出现 prompt()/alert()/confirm() */
 for (const banned of ['prompt(', 'alert(', 'confirm(']) {

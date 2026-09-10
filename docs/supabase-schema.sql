@@ -19,7 +19,9 @@ create table if not exists community_picks (
   "addedAt" bigint  not null             -- epoch 毫秒
 );
 
--- 无账号社区：anon 角色即可读/写，权限全靠这几条策略（契约 §6 既定做法）
+-- 无账号社区：anon 角色即可读/写，权限靠 GRANT（表级）+ RLS（行级）双保险。
+-- 显式 GRANT 保证「Automatically expose new tables」关闭时也能经 Data API 读写。
+grant select, insert, update on public.community_picks to anon;
 alter table community_picks enable row level security;
 
 create policy "anon select" on community_picks

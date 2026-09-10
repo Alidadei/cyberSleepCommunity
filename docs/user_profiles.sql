@@ -1,6 +1,7 @@
 -- cyberSleepCommunity · 用户画像表（匿名统计研究用）
 --
--- 用法：Dashboard → SQL Editor → 粘贴 → Run
+-- 已执行（2026-09-11，由 Supabase MCP apply_migration 自动建表）
+-- 幂等：本脚本可随时重跑
 -- 与 community_picks 同一套模式：无账号社区，匿名 UUID 即身份，RLS 全开但宽松。
 --
 -- 字段说明（列名 = JSON 字段，REST 按列名映射）：

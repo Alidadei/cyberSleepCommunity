@@ -36,7 +36,7 @@
 
 - [x] 本轮修复（2026-09-10）：v0.1 六个条目 + v1.2 三个 bug，见根目录 `待改进.md`（图标/文案/榜单页导航/汉堡/入场滚动/面板对比度/提交停留当前页/同内容合并+推荐次数/汉堡不可见）
 - [x] 数据库维护自动化：UNIQUE 约束防重复 + 前端 load 去重兜底 + 数据去重 SQL（`docs/dedup-community-picks.sql`），`supabase-maintenance` skill 沉淀维护操作
-- [~] **匿名画像（P2 第一步）**：榜单页顶部画像卡（昵称/年龄 60后-00后/性别/学历，全部选填，提示「仅作统计研究使用」，匿名 uid `csc_uid` + `csc_profile`）。表 `docs/user_profiles.sql` **待站主 SQL Editor 建表**
+- [x] **匿名画像（P2 第一步）**：榜单页顶部画像卡（昵称/年龄 60后-00后/性别/学历，全部选填，提示「仅作统计研究使用」，匿名 uid `csc_uid` + `csc_profile`）。表 `docs/user_profiles.sql` 已由 Supabase MCP 自动建表（2026-09-11），RLS/anonymous 读写已验证
 - [ ] 用户行为流水 `user_actions`（提交/打分事件 → 画像聚合视图 `user_profile` → 前端「为我推荐」）
 - [–] P3 远期：AI 推荐（需 Edge Function 中转，避免前端暴露 key，等站点有人用再上）
 

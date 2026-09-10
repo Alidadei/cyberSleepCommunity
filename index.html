@@ -1051,6 +1051,85 @@
     .ranking-list .card {
       margin: 8px 0
     }
+
+    .profile-card {
+      margin: 8px 0 4px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px dashed rgba(255, 255, 255, .14)
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px
+    }
+
+    .profile-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .5px
+    }
+
+    .profile-toggle {
+      background: none;
+      border: none;
+      color: var(--link);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 6px
+    }
+
+    .profile-hint {
+      font-size: 11px;
+      opacity: .75;
+      margin-top: 6px
+    }
+
+    .profile-summary {
+      font-size: 12px;
+      opacity: .85;
+      margin-top: 6px
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 6px;
+      font-size: 12px
+    }
+
+    .profile-row label {
+      min-width: 56px;
+      opacity: .85
+    }
+
+    .profile-row input,
+    .profile-row select {
+      flex: 1;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--input);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 12px
+    }
+
+    .profile-save {
+      margin-top: 6px;
+      font-size: 12px;
+      padding: 5px 14px
+    }
+
+    .profile-msg {
+      margin-top: 6px;
+      font-size: 12px
+    }
   </style>
   <script>
     /* 时辰主题：按本地时间在夜/昼两套色板间连续插值。
@@ -1190,6 +1269,8 @@
     ];
     const KEY = 'csc_community_picks';
     const SKEY = 'csc_sample_ratings';
+    const PKEY = 'csc_profile';   /* 匿名画像：{ uid, nickname, age, gender, education } 全部选填 */
+    const UKEY = 'csc_uid';       /* 匿名设备标识：首次生成后固定，用于画像 upsert */
 
     /* ---- P1 配置：两个值都填上即启用云端（建表 SQL 见 docs/supabase-schema.sql 或
        docs/cloudbase-migration.md）。anon key 本身就是公开凭据，权限靠 RLS 管；留空则维持本机存储。
@@ -1291,7 +1372,9 @@
         const picks = await this.load();
         const p = picks.find(x => x.id === id);
         if (p) { (p.ratings = p.ratings || []).push(score); await this.save(picks); }
-      }
+      },
+      /* 本地端：画像存独立 localStorage 条目（csc_profile），无需额外动作 */
+      async saveProfile(profile) { return Promise.resolve(); }
     };
 
     /* 云端存储：官方 Supabase 与腾讯云 CloudBase(PG 模式) 共用一套实现。
@@ -1367,10 +1450,58 @@
           method: 'PATCH', headers: await this.headers(), body: JSON.stringify({ ratings })
         });
         if (!r.ok) throw new Error('rate write ' + r.status);
+      },
+      /* 匿名画像：user_id 主键 upsert（Prefer merge-duplicates），全部字段选填 */
+      async saveProfile(profile) {
+        const row = {
+          user_id: profile.uid,
+          nickname: profile.nickname || '',
+          age_group: profile.age || 'prefer_not',
+          gender: profile.gender || 'prefer_not',
+          education: profile.education || 'prefer_not'
+        };
+        const r = await fetch(this.rest('user_profiles'), {
+          method: 'POST',
+          headers: Object.assign({ Prefer: 'resolution=merge-duplicates' }, await this.headers()),
+          body: JSON.stringify(row)
+        });
+        if (!r.ok) throw new Error('profile ' + r.status);
       }
     };
 
     const Store = (SUPABASE.url && SUPABASE.anonKey) ? SupabaseStore : LocalStore;
+
+    /* ================= 匿名画像 ================= */
+    function profileUid() {
+      try {
+        let u = localStorage.getItem(UKEY);
+        if (!u) { u = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem(UKEY, u); }
+        return u;
+      } catch (e) { return 'u' + Date.now().toString(36); }
+    }
+    function loadProfile() {
+      try { const o = JSON.parse(localStorage.getItem(PKEY)); return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {}; } catch (e) { return {}; }
+    }
+    function saveProfileLocal(p) {
+      const d = Object.assign({}, loadProfile(), p, { uid: profileUid() });
+      try { localStorage.setItem(PKEY, JSON.stringify(d)); } catch (e) { }
+      return d;
+    }
+    function syncProfile(d) {
+      if (SUPABASE.url && SUPABASE.anonKey) return Store.saveProfile(d).then(() => true).catch(() => false);
+      return Promise.resolve(false);
+    }
+    const AGE_GROUP_KEYS = ['60s', '70s', '80s', '90s', '00s'];
+    const GENDER_KEYS = ['male', 'female'];
+    const EDU_KEYS = ['bachelor', 'master', 'phd', 'other'];
+    function profileSummary(p) {
+      const parts = [];
+      if (p.nickname) parts.push(p.nickname);
+      if (AGE_GROUP_KEYS.includes(p.age)) parts.push(t('age_' + p.age));
+      if (GENDER_KEYS.includes(p.gender)) parts.push(t('gender_' + p.gender));
+      if (EDU_KEYS.includes(p.education)) parts.push(t('edu_' + p.education));
+      return parts;
+    }
 
     /* ================= 工具 ================= */
     function normalizeUrl(u) {
@@ -1620,6 +1751,94 @@
     function rerenderRanking() {
       if (currentRankingType !== null) showRankingPage(currentRankingType, currentRankingQuery);
     }
+    /* ---- 匿名画像卡：放榜单顶部，用户可跳过（选填） ---- */
+    function profileCardEl() {
+      const p = loadProfile();
+      const filled = profileSummary(p).length > 0;
+      const box = document.createElement('div');
+      box.className = 'profile-card' + (filled ? ' filled' : '');
+      box.id = 'profileCard';
+      const head = document.createElement('div');
+      head.className = 'profile-head';
+      const title = document.createElement('span');
+      title.className = 'profile-title';
+      title.textContent = t('profile_title');
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'profile-toggle focusable';
+      toggle.textContent = t('profile_edit');
+      head.appendChild(title); head.appendChild(toggle);
+      box.appendChild(head);
+      const body = document.createElement('div');
+      body.className = 'profile-body';
+      if (filled && !p._open) {
+        const sum = document.createElement('div');
+        sum.className = 'profile-summary';
+        sum.textContent = '✓ ' + profileSummary(p).join(' · ') || t('profile_anon');
+        body.appendChild(sum);
+        toggle.onclick = () => { p._open = true; try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) { } rerenderRanking(); };
+        box.appendChild(body);
+        return box;
+      }
+      const hint = document.createElement('div');
+      hint.className = 'profile-hint';
+      hint.textContent = t('profile_hint');
+      body.appendChild(hint);
+      const mkInput = (labelKey, val, ph) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'profile-row';
+        const lab = document.createElement('label');
+        lab.textContent = t(labelKey);
+        const inp = document.createElement('input');
+        inp.value = val || '';
+        inp.placeholder = ph || '';
+        wrap.appendChild(lab); wrap.appendChild(inp);
+        body.appendChild(wrap);
+        return inp;
+      };
+      const mkSelect = (labelKey, keys, val) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'profile-row';
+        const lab = document.createElement('label');
+        lab.textContent = t(labelKey);
+        const sel = document.createElement('select');
+        const def = document.createElement('option');
+        def.value = ''; def.textContent = t('profile_skip');
+        sel.appendChild(def);
+        for (const k of keys) {
+          const op = document.createElement('option');
+          op.value = k; op.textContent = t((labelKey === 'profile_age' ? 'age_' : labelKey === 'profile_gender' ? 'gender_' : 'edu_') + k);
+          sel.appendChild(op);
+        }
+        sel.value = val || '';
+        wrap.appendChild(lab); wrap.appendChild(sel);
+        body.appendChild(wrap);
+        return sel;
+      };
+      const nick = mkInput('profile_nick', p.nickname, t('profile_nick_ph'));
+      const age = mkSelect('profile_age', AGE_GROUP_KEYS, p.age);
+      const gender = mkSelect('profile_gender', GENDER_KEYS, p.gender);
+      const edu = mkSelect('profile_edu', EDU_KEYS, p.education);
+      const msg = document.createElement('div');
+      msg.className = 'msg profile-msg';
+      body.appendChild(msg);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn profile-save focusable';
+      btn.textContent = t('profile_save');
+      btn.onclick = async () => {
+        const d = saveProfileLocal({ nickname: nick.value.trim(), age: age.value, gender: gender.value, education: edu.value });
+        try { delete d._open; localStorage.setItem(PKEY, JSON.stringify(d)); } catch (e) { }
+        const synced = await syncProfile(d);
+        msg.classList.add(synced ? 'ok' : 'bad');
+        msg.textContent = synced ? t('profile_saved')(profileSummary(d).join(' · ')) : t('profile_local_only');
+        rerenderRanking();
+      };
+      body.appendChild(btn);
+      toggle.onclick = () => { p._open = false; try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) { } rerenderRanking(); };
+      box.appendChild(body);
+      return box;
+    }
     function showRankingPage(typeKey, preserveQuery) {
       currentRankingType = typeKey;
       currentRankingQuery = preserveQuery || '';
@@ -1646,6 +1865,7 @@
       searchBox.placeholder = t('search_ph');
       searchBox.setAttribute('aria-label', '搜索排行榜');
       overlay.appendChild(searchBox);
+      overlay.appendChild(profileCardEl());
       const listContainer = document.createElement('div');
       listContainer.className = 'ranking-list';
       overlay.appendChild(listContainer);
@@ -2090,6 +2310,19 @@
         ratings: (a, n) => `${a} · ${n} 次评价`, sample_tag: '【样例】', in_app: 'APP 同款',
         in_app_title: '这条在 APP「睡眠站台」里也有',
         stars_group: '为这条内容打分（1–5 星，5 = 最助眠）', star_n: n => `${n} 星`,
+        profile_title: '完善画像（选填）',
+        profile_hint: '仅作统计研究使用，推荐填写！',
+        profile_edit: '修改',
+        profile_anon: '匿名',
+        profile_nick: '昵称', profile_nick_ph: '想让大家怎么称呼你（可留空）',
+        profile_age: '年龄', profile_gender: '性别', profile_edu: '学历',
+        profile_skip: '不填',
+        age_60s: '60后', age_70s: '70后', age_80s: '80后', age_90s: '90后', age_00s: '00后',
+        gender_male: '男', gender_female: '女',
+        edu_bachelor: '本科', edu_master: '硕士', edu_phd: '博士', edu_other: '其他',
+        profile_save: '保存画像',
+        profile_saved: s => '已保存 ✓' + (s ? '  ' + s : ''),
+        profile_local_only: '已存本机（云端暂时不可用，稍后自动重试）',
         empty_all: '以上【样例】仅为演示数据 · 社区还没有真实推荐，欢迎发布第一条',
         empty_type: '该类型还没有社区推荐，欢迎发布第一条',
         nav_about: '网站介绍', ph_type: '例如：白噪音、ASMR（选填，可自定义标签）',
@@ -2134,6 +2367,19 @@
         ratings: (a, n) => `${a} · ${n} ratings`, sample_tag: '[Sample] ', in_app: 'Also in app',
         in_app_title: 'This one also exists in the Sleep Station app',
         stars_group: 'Rate this 1–5 stars (5 = most sleep-inducing)', star_n: n => `${n} star${n > 1 ? 's' : ''}`,
+        profile_title: 'Tell us about you (optional)',
+        profile_hint: 'Anonymous statistics only — please fill in!',
+        profile_edit: 'Edit',
+        profile_anon: 'Anonymous',
+        profile_nick: 'Nickname', profile_nick_ph: 'Call me… (optional)',
+        profile_age: 'Age', profile_gender: 'Gender', profile_edu: 'Education',
+        profile_skip: 'Prefer not',
+        age_60s: 'Post-60s', age_70s: 'Post-70s', age_80s: 'Post-80s', age_90s: 'Post-90s', age_00s: 'Post-00s',
+        gender_male: 'Male', gender_female: 'Female',
+        edu_bachelor: 'Bachelor', edu_master: 'Master', edu_phd: 'Doctorate', edu_other: 'Other',
+        profile_save: 'Save',
+        profile_saved: s => 'Saved ✓' + (s ? '  ' + s : ''),
+        profile_local_only: 'Saved locally (cloud unavailable — will retry later)',
         empty_all: 'The samples above are demo data · no real picks yet — feel free to add the first one',
         empty_type: 'No community picks for this type yet — be the first',
         nav_about: 'About', ph_type: 'e.g. white noise, ASMR (optional, custom tags allowed)',

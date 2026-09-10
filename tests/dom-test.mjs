@@ -387,7 +387,26 @@ ok(replayIntro.classList.contains('bye'), '第二次交互进入网站（淡出�
 await sleep(2600);
 ok(!bodyKids.some(n => n.id === 'intro' && !n._removed), '淡出后遮罩移除');
 
-/* ---------- 14. 无效链接 ---------- */
+/* ---------- 14. 匿名画像卡（选填，榜单页顶部） ---------- */
+const pc = () => registry.rankingOverlay.querySelectorAll('.profile-card')[0];
+ok(!!pc(), '榜单页渲染画像卡');
+ok(pc().querySelectorAll('.profile-title')[0].textContent === '完善画像（选填）', '画像卡标题文案');
+ok(pc().querySelectorAll('.profile-hint')[0].textContent === '仅作统计研究使用，推荐填写！', '画像卡提示文案（仅作统计研究使用）');
+const pInputs = () => registry.rankingOverlay.querySelectorAll('.profile-card input, .profile-card select');
+ok(pInputs().length === 4, '画像卡含 昵称/年龄/性别/学历 四项', pInputs().length);
+pInputs()[0].value = '夜猫子';
+pInputs()[1].value = '00s';
+pInputs()[2].value = 'male';
+pInputs()[3].value = 'master';
+await pc().querySelectorAll('.profile-save')[0].onclick();
+const profileStore = () => JSON.parse(storage.get('csc_profile') || '{}');
+ok(profileStore().nickname === '夜猫子' && profileStore().age === '00s' && profileStore().gender === 'male' && profileStore().education === 'master', '画像保存入库（昵称/年龄/性别/学历）', profileStore());
+const pcSaved = () => registry.rankingOverlay.querySelectorAll('.profile-card')[0];
+ok(pcSaved().querySelectorAll('.profile-summary')[0].textContent.includes('夜猫子 · 00后 · 男 · 硕士'), '已保存后显示摘要（匿名昵称+画像）', pcSaved().querySelectorAll('.profile-summary')[0].textContent);
+const profileRaw = JSON.parse(storage.get('csc_profile') || '{}');
+ok(!!profileRaw.uid && profileRaw.uid.indexOf('u') === 0, '自动生成匿名设备 uid（csc_uid 体系）', profileRaw.uid);
+
+/* ---------- 15. 无效链接 ---------- */
 g('fTitle').value = '';
 g('fUrl').value = 'not a url at all';
 await g('fSubmit').onclick();

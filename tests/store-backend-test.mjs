@@ -67,6 +67,32 @@ function run(config) {
   ok(!!saveCall && saveCall.headers.Prefer === 'resolution=merge-duplicates', 'save 按主键 merge-duplicates upsert');
 }
 
+/* ---------- 匿名画像：user_profiles 表 upsert ---------- */
+{
+  const cfg = { url: 'https://abcdefgh.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiJ9.XXX' };
+  const calls = [];
+  const fetch = async (url, opts = {}) => {
+    calls.push({ url: String(url), method: opts.method || 'GET', body: opts.body || null, headers: opts.headers || {} });
+    if (String(url).includes('/auth/v1/signin/anonymously')) return { ok: true, status: 200, json: async () => ({ access_token: 'TOK' }) };
+    return { ok: true, status: 201, json: async () => ({}) };
+  };
+  const sandbox = { SUPABASE: cfg, fetch, Date, console };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  new vm.Script(block).runInContext(sandbox);
+  const s = sandbox.SupabaseStore;
+  await s.saveProfile({ uid: 'u-test', nickname: '夜猫子', age: '00s', gender: 'male', education: 'master' });
+  const call = calls.find(c => c.method === 'POST' && c.url.includes('user_profiles'));
+  ok(!!call, 'saveProfile POST 到 user_profiles');
+  ok(call.headers.Prefer === 'resolution=merge-duplicates', 'saveProfile 按 user_id merge-duplicates upsert');
+  const body = JSON.parse(call.body);
+  ok(body.user_id === 'u-test' && body.nickname === '夜猫子' && body.age_group === '00s' && body.gender === 'male' && body.education === 'master', '画像字段映射（user_id/age_group 下划线）', body);
+  await s.saveProfile({ uid: 'u-test', nickname: '', age: '', gender: '', education: '' });
+  const call2 = calls.filter(c => c.method === 'POST' && c.url.includes('user_profiles')).pop();
+  const body2 = JSON.parse(call2.body);
+  ok(body2.age_group === 'prefer_not', '空值归一为 prefer_not', body2);
+}
+
 /* ---------- 官方 Supabase 后端 ---------- */
 {
   const cfg = { url: 'https://abcdefgh.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiJ9.XXX' };

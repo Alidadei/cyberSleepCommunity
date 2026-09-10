@@ -35,12 +35,14 @@
 ## 四、功能路线
 
 - [x] 本轮修复（2026-09-10）：v0.1 六个条目 + v1.2 三个 bug，见根目录 `待改进.md`（图标/文案/榜单页导航/汉堡/入场滚动/面板对比度/提交停留当前页/同内容合并+推荐次数/汉堡不可见）
-- [ ] `待改进.md` 后续新条目（每次开新会前先读它）
-- [–] P2 远期：用户画像 + AI 推荐（综合算分排序、推荐量统计）——方向见 `docs/cloudbase-migration.md` §八 × `AGENT_HANDOFF.md` §3 P3
+- [x] 数据库维护自动化：UNIQUE 约束防重复 + 前端 load 去重兜底 + 数据去重 SQL（`docs/dedup-community-picks.sql`），`supabase-maintenance` skill 沉淀维护操作
+- [~] **匿名画像（P2 第一步）**：榜单页顶部画像卡（昵称/年龄 60后-00后/性别/学历，全部选填，提示「仅作统计研究使用」，匿名 uid `csc_uid` + `csc_profile`）。表 `docs/user_profiles.sql` **待站主 SQL Editor 建表**
+- [ ] 用户行为流水 `user_actions`（提交/打分事件 → 画像聚合视图 `user_profile` → 前端「为我推荐」）
+- [–] P3 远期：AI 推荐（需 Edge Function 中转，避免前端暴露 key，等站点有人用再上）
 
 ## 五、工程纪律（每次改动后执行）
 
-- 测试必须绿：`node tests/dom-test.mjs`（UI 行为 70 断言）+ `node tests/store-backend-test.mjs`（双后端 12 断言）
+- 测试必须绿：`node tests/dom-test.mjs`（UI 行为 77 断言）+ `node tests/store-backend-test.mjs`（双后端 16 断言）
 - 铁律：单文件零依赖，`Store.load()` 异步需 `await`；测试桩不支持 `document.querySelector`
 - 提交前自查：`git status` 只含预期文件；**不提交任何密钥**（publishable/anon key 除外，本就公开）
 - 本页有新决策/新完成项时随手更新

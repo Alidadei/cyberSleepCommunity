@@ -367,6 +367,17 @@
       inset: 0
     }
 
+    /* 电脑端：选中范围收窄到推荐标题，整卡点击覆盖仅移动端保留 */
+    @media (min-width: 768px) {
+      .card .t::after {
+        content: none
+      }
+
+      .card {
+        cursor: default
+      }
+    }
+
     .card .m {
       font-size: 13px;
       color: var(--sub);
@@ -992,14 +1003,18 @@
     }
 
     .ranking-header {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 10px;
       margin-bottom: 16px;
       flex-shrink: 0
     }
 
     .ranking-back {
+      position: absolute;
+      left: 0;
       background: none;
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -1018,29 +1033,56 @@
     }
 
     .ranking-type-badge {
-      font-size: 14px;
+      font-size: 18px;
       color: var(--accent);
-      font-weight: 600
+      font-weight: 700;
+      line-height: 1.1
     }
 
-    .ranking-overlay .search {
-      margin-bottom: 14px;
-      background: rgb(var(--card-rgb)/.55);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+    .ranking-search-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      width: min(560px, 100%);
-      font-family: inherit;
-      font-size: 14px;
-      text-align: left;
-      padding: 9px 12px
+      border-radius: 10px;
+      color: var(--sub);
+      padding: 6px;
+      cursor: pointer;
+      line-height: 0;
+      transition: border-color .2s, color .2s
     }
 
-    .ranking-overlay .search::placeholder {
+    .ranking-search-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    .ranking-search-line {
+      flex: 0 0 auto;
+      width: 0;
+      min-width: 0;
+      opacity: 0;
+      padding: 0;
       font-family: inherit;
       font-size: 14px;
-      letter-spacing: normal
+      color: var(--ink);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid transparent;
+      outline: none;
+      transition: width .25s ease, opacity .2s ease, padding .25s ease, border-bottom-color .2s ease
+    }
+
+    .ranking-search-line.show {
+      width: min(240px, 38vw);
+      opacity: 1;
+      padding: 4px 2px 6px;
+      border-bottom-color: rgb(var(--accent-rgb)/.55)
+    }
+
+    .ranking-search-line.show:focus {
+      border-bottom-color: var(--accent)
     }
 
     .ranking-list {
@@ -1060,6 +1102,36 @@
       border: 1px dashed rgba(255, 255, 255, .14)
     }
 
+    /* 电脑端整体宽度收缩为 1/3 并居中（移动端保持通栏不挤） */
+    @media (min-width: 768px) {
+      .profile-card {
+        width: 33.33%;
+        align-self: center
+      }
+    }
+
+    .profile-card.open {
+      position: relative;
+      z-index: 30
+    }
+
+    .profile-card.open .profile-body {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 30;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35)
+    }
+
+    .profile-card.open .profile-head {
+      cursor: pointer
+    }
+
     .profile-head {
       display: flex;
       align-items: center;
@@ -1071,6 +1143,10 @@
       font-size: 13px;
       font-weight: 600;
       letter-spacing: .5px
+    }
+
+    .profile-card:not(.open) {
+      cursor: pointer
     }
 
     .profile-toggle {
@@ -1089,10 +1165,31 @@
       margin-top: 6px
     }
 
+    .profile-hint.inline {
+      flex: 1;
+      min-width: 0;
+      margin-top: 0;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px
+    }
+
     .profile-summary {
       font-size: 12px;
       opacity: .85;
       margin-top: 6px
+    }
+
+    .profile-summary.inline {
+      flex: 0 1 auto;
+      min-width: 0;
+      margin-top: 0;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
     }
 
     .profile-row {
@@ -1690,6 +1787,20 @@
       span.appendChild(document.createTextNode(t('in_app')));
       return span;
     }
+    function magnifierSvg() {
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '16'); svg.setAttribute('height', '16');
+      svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round');
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('cx', '11'); c.setAttribute('cy', '11'); c.setAttribute('r', '7');
+      const l = document.createElementNS(ns, 'line');
+      l.setAttribute('x1', '16.5'); l.setAttribute('y1', '16.5'); l.setAttribute('x2', '21'); l.setAttribute('y2', '21');
+      svg.appendChild(c); svg.appendChild(l);
+      return svg;
+    }
 
     /* ================= 渲染 ================= */
     let currentType = null;   /* null = 未点亮节点，榜单收起 */
@@ -1751,12 +1862,13 @@
     function rerenderRanking() {
       if (currentRankingType !== null) showRankingPage(currentRankingType, currentRankingQuery);
     }
-    /* ---- 匿名画像卡：放榜单顶部，用户可跳过（选填） ---- */
+    /* ---- 匿名画像：长期数据，默认收成单行入口，点击才展开填写 ---- */
     function profileCardEl() {
       const p = loadProfile();
       const filled = profileSummary(p).length > 0;
+      const open = !!p._open;
       const box = document.createElement('div');
-      box.className = 'profile-card' + (filled ? ' filled' : '');
+      box.className = 'profile-card' + (filled ? ' filled' : '') + (open ? ' open' : '');
       box.id = 'profileCard';
       const head = document.createElement('div');
       head.className = 'profile-head';
@@ -1766,20 +1878,33 @@
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'profile-toggle focusable';
-      toggle.textContent = t('profile_edit');
-      head.appendChild(title); head.appendChild(toggle);
+      const toggleForm = () => { p._open = !p._open; try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) { } rerenderRanking(); };
+      head.appendChild(title);
+      if (!open) {
+        toggle.textContent = filled ? t('profile_edit') : t('profile_fill');
+        const hintSpan = document.createElement('span');
+        hintSpan.className = 'profile-hint inline';
+        hintSpan.textContent = t('profile_hint');
+        head.appendChild(hintSpan);
+        if (filled) {
+          const sum = document.createElement('span');
+          sum.className = 'profile-summary inline';
+          sum.textContent = profileSummary(p).join(' · ');
+          head.appendChild(sum);
+        }
+        toggle.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); toggleForm(); };
+        box.onclick = toggleForm;
+        head.appendChild(toggle);
+        box.appendChild(head);
+        return box;
+      }
+      toggle.textContent = t('profile_collapse');
+      toggle.onclick = e => { if (e && e.stopPropagation) e.stopPropagation(); toggleForm(); };
+      head.onclick = toggleForm;
+      head.appendChild(toggle);
       box.appendChild(head);
       const body = document.createElement('div');
       body.className = 'profile-body';
-      if (filled && !p._open) {
-        const sum = document.createElement('div');
-        sum.className = 'profile-summary';
-        sum.textContent = '✓ ' + profileSummary(p).join(' · ') || t('profile_anon');
-        body.appendChild(sum);
-        toggle.onclick = () => { p._open = true; try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) { } rerenderRanking(); };
-        box.appendChild(body);
-        return box;
-      }
       const hint = document.createElement('div');
       hint.className = 'profile-hint';
       hint.textContent = t('profile_hint');
@@ -1835,7 +1960,6 @@
         rerenderRanking();
       };
       body.appendChild(btn);
-      toggle.onclick = () => { p._open = false; try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) { } rerenderRanking(); };
       box.appendChild(body);
       return box;
     }
@@ -1858,13 +1982,24 @@
       const typeName = typeKey === 'all' ? t('chip_all') : typeLabel(typeKey);
       badge.textContent = '# ' + typeName;
       header.appendChild(badge);
-      overlay.appendChild(header);
+      const searchBtn = document.createElement('button');
+      searchBtn.type = 'button';
+      searchBtn.className = 'ranking-search-btn focusable';
+      searchBtn.setAttribute('aria-label', t('search_ph'));
+      searchBtn.title = t('search_ph');
+      searchBtn.appendChild(magnifierSvg());
+      header.appendChild(searchBtn);
       const searchBox = document.createElement('input');
       searchBox.id = 'rankingSearch';
-      searchBox.className = 'search';
+      searchBox.className = 'ranking-search-line';
       searchBox.placeholder = t('search_ph');
       searchBox.setAttribute('aria-label', '搜索排行榜');
-      overlay.appendChild(searchBox);
+      header.appendChild(searchBox);
+      overlay.appendChild(header);
+      searchBtn.onclick = () => {
+        if (searchBox.classList.toggle('show')) { if (searchBox.focus) try { searchBox.focus(); } catch (e) { } }
+        else if (searchBox.blur) try { searchBox.blur(); } catch (e) { }
+      };
       overlay.appendChild(profileCardEl());
       const listContainer = document.createElement('div');
       listContainer.className = 'ranking-list';
@@ -2313,6 +2448,8 @@
         profile_title: '完善画像（选填）',
         profile_hint: '仅作统计研究使用，推荐填写！',
         profile_edit: '修改',
+        profile_fill: '填写',
+        profile_collapse: '收起',
         profile_anon: '匿名',
         profile_nick: '昵称', profile_nick_ph: '想让大家怎么称呼你（可留空）',
         profile_age: '年龄', profile_gender: '性别', profile_edu: '学历',
@@ -2370,6 +2507,8 @@
         profile_title: 'Tell us about you (optional)',
         profile_hint: 'Anonymous statistics only — please fill in!',
         profile_edit: 'Edit',
+        profile_fill: 'Fill in',
+        profile_collapse: 'Collapse',
         profile_anon: 'Anonymous',
         profile_nick: 'Nickname', profile_nick_ph: 'Call me… (optional)',
         profile_age: 'Age', profile_gender: 'Gender', profile_edu: 'Education',

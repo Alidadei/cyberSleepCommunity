@@ -320,6 +320,16 @@ ok(g('fSubmit').textContent === '提交推荐', '提交按钮文案', g('fSubmit
 /* ---------- 9b. 排行榜页内导航可用 + 汉堡菜单点选收起 ---------- */
 clickNode('噪音干扰型');
 ok(g('rankingOverlay').classList.contains('open'), '排行榜页已打开（前置）');
+const rankBadge = g('rankingOverlay').querySelectorAll('.ranking-type-badge')[0];
+ok(rankBadge.textContent === '# 噪音干扰型', '类型标签（# 噪音干扰型，居中大两号）');
+const rankSearchBtn = g('rankingOverlay').querySelectorAll('.ranking-search-btn')[0];
+ok(!!rankSearchBtn && rankSearchBtn.children.some(c => c.tagName === 'SVG'), '放大镜小图标挨在标签右边');
+const rankSearchLine = () => registry.rankingOverlay.querySelectorAll('.ranking-search-line')[0];
+ok(!rankSearchLine().classList.contains('show'), '搜索框默认隐去（不占空间）');
+rankSearchBtn.onclick();
+ok(rankSearchLine().classList.contains('show'), '点放大镜向右展开一条线');
+rankSearchBtn.onclick();
+ok(!rankSearchLine().classList.contains('show'), '再点放大镜收起搜索线');
 g('navPublish').onclick();
 ok(g('rankingOverlay').classList.contains('open'), '排行榜页中点「推荐药方」榜单保留');
 ok(g('formPanel').classList.contains('open'), '并展开发布面板');
@@ -387,12 +397,19 @@ ok(replayIntro.classList.contains('bye'), '第二次交互进入网站（淡出�
 await sleep(2600);
 ok(!bodyKids.some(n => n.id === 'intro' && !n._removed), '淡出后遮罩移除');
 
-/* ---------- 14. 匿名画像卡（选填，榜单页顶部） ---------- */
+/* ---------- 14. 匿名画像（选填，榜单页顶部，默认收起为单行入口） ---------- */
 const pc = () => registry.rankingOverlay.querySelectorAll('.profile-card')[0];
 ok(!!pc(), '榜单页渲染画像卡');
 ok(pc().querySelectorAll('.profile-title')[0].textContent === '完善画像（选填）', '画像卡标题文案');
-ok(pc().querySelectorAll('.profile-hint')[0].textContent === '仅作统计研究使用，推荐填写！', '画像卡提示文案（仅作统计研究使用）');
 const pInputs = () => registry.rankingOverlay.querySelectorAll('.profile-card input, .profile-card select');
+ok(pInputs().length === 0, '画像默认收起（不展开占篇幅）');
+const togglePre = pc().querySelectorAll('.profile-toggle')[0];
+ok(togglePre.textContent === '填写', '未填时入口按钮文案');
+ok(pc().querySelectorAll('.profile-hint')[0].textContent === '仅作统计研究使用，推荐填写！', '收起时标题右侧紧接提示文案');
+ok(pc().querySelectorAll('.profile-hint.inline')[0].className.includes('profile-hint'), '提示文案内联跟随标题');
+togglePre.onclick();  /* 展开表单 */
+ok(pc().classList.contains('open'), '展开为浮层显示（不挤占榜单）');
+ok(pc().querySelectorAll('.profile-hint')[0].textContent === '仅作统计研究使用，推荐填写！', '画像卡提示文案（仅作统计研究使用）');
 ok(pInputs().length === 4, '画像卡含 昵称/年龄/性别/学历 四项', pInputs().length);
 pInputs()[0].value = '夜猫子';
 pInputs()[1].value = '00s';
@@ -402,9 +419,14 @@ await pc().querySelectorAll('.profile-save')[0].onclick();
 const profileStore = () => JSON.parse(storage.get('csc_profile') || '{}');
 ok(profileStore().nickname === '夜猫子' && profileStore().age === '00s' && profileStore().gender === 'male' && profileStore().education === 'master', '画像保存入库（昵称/年龄/性别/学历）', profileStore());
 const pcSaved = () => registry.rankingOverlay.querySelectorAll('.profile-card')[0];
-ok(pcSaved().querySelectorAll('.profile-summary')[0].textContent.includes('夜猫子 · 00后 · 男 · 硕士'), '已保存后显示摘要（匿名昵称+画像）', pcSaved().querySelectorAll('.profile-summary')[0].textContent);
+ok(pcSaved().querySelectorAll('.profile-summary')[0].textContent.includes('夜猫子 · 00后 · 男 · 硕士'), '已保存后收起为单行摘要（匿名昵称+画像）', pcSaved().querySelectorAll('.profile-summary')[0].textContent);
+ok(pInputs().length === 0, '已填后仍默认收起', pInputs().length);
 const profileRaw = JSON.parse(storage.get('csc_profile') || '{}');
 ok(!!profileRaw.uid && profileRaw.uid.indexOf('u') === 0, '自动生成匿名设备 uid（csc_uid 体系）', profileRaw.uid);
+pcSaved().onclick();  /* 点击模块框框（非按钮）也可展开 */
+ok(!!pcSaved() && pcSaved().classList.contains('open'), '点击模块框框即可展开填写', !!pcSaved() && pcSaved().className);
+pcSaved().querySelectorAll('.profile-head')[0].onclick();  /* 展开态点模块框头可收起 */
+ok(!pcSaved().classList.contains('open'), '展开态点击模块框也可收起', pcSaved().className);
 
 /* ---------- 15. 无效链接 ---------- */
 g('fTitle').value = '';

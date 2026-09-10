@@ -42,7 +42,7 @@
 
 ## 五、工程纪律（每次改动后执行）
 
-- 测试必须绿：`node tests/dom-test.mjs`（UI 行为 77 断言）+ `node tests/store-backend-test.mjs`（双后端 16 断言）
+- 测试必须绿：`node tests/dom-test.mjs`（UI 行为 90 断言）+ `node tests/store-backend-test.mjs`（双后端 16 断言）
 - 铁律：单文件零依赖，`Store.load()` 异步需 `await`；测试桩不支持 `document.querySelector`
 - 提交前自查：`git status` 只含预期文件；**不提交任何密钥**（publishable/anon key 除外，本就公开）
 - 本页有新决策/新完成项时随手更新

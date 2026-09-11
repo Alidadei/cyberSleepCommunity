@@ -1507,7 +1507,13 @@
           const exist = seen.get(k);
           if (!exist || (row.recommend_count || 0) > (exist.recommend_count || 0)) seen.set(k, row);
         }
-        return [...seen.values()];
+        /* 云端行统一转 camelCase（recommend_count→recommendCount 等），与 LocalStore 契约字段一致 */
+        return [...seen.values()].map(r => {
+          const o = Object.assign({}, r);
+          o.recommendCount = Number.isFinite(o.recommend_count) ? Math.trunc(o.recommend_count) : 1;
+          delete o.recommend_count;
+          return o;
+        });
       },
       /* 导入合并用：按主键 upsert 整批 */
       async save(picks) {

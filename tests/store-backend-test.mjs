@@ -131,4 +131,29 @@ function run(config) {
   ok(patch && JSON.parse(patch.body).recommend_count === 2, 'merge 同 URL 第二次 add → PATCH recommend_count=2', patch && JSON.parse(patch.body));
 }
 
+/* ---------- 云端 load 行归一化：recommend_count → camelCase recommendCount（卡片计数显示用） ---------- */
+{
+  const cfg = { url: 'https://abcdefgh.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiJ9.XXX' };
+  const calls = [];
+  const fetch = async (url, opts = {}) => {
+    calls.push({ url: String(url), method: opts.method || 'GET', body: opts.body || null, headers: opts.headers || {} });
+    if (String(url).includes('/auth/v1/signin/anonymously')) return { ok: true, status: 200, json: async () => ({ access_token: 'TOK' }) };
+    const kind = (opts.method || 'GET').toUpperCase();
+    if (kind === 'GET') return { ok: true, status: 200, json: async () => [
+      { id: 7, title: '循环三小时', url: 'https://example.com/x', type: 'noise', ratings: [5], addedAt: 1, recommend_count: 4 },
+      { id: 8, title: '老电影', url: 'https://example.com/y', type: null, ratings: [], addedAt: 2, recommend_count: null }
+    ] };
+    return { ok: true, status: 201, json: async () => ({}) };
+  };
+  const sandbox = { SUPABASE: cfg, fetch, Date, console };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  new vm.Script(block).runInContext(sandbox);
+  const rows = await sandbox.SupabaseStore.load();
+  const x = rows.find(r => r.url === 'https://example.com/x');
+  const y = rows.find(r => r.url === 'https://example.com/y');
+  ok(rows.length === 2 && x.recommendCount === 4 && !('recommend_count' in x), 'load 把 recommend_count→recommendCount（4）', x);
+  ok(y.recommendCount === 1, 'recommend_count 为空 → 默认 1');
+}
+
 console.log('ALL PASS: ' + pass + ' assertions');

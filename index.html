@@ -1003,12 +1003,12 @@
       }
     }
 
-    /* 全屏排行榜覆盖层 */
+    /* 全屏排行榜覆盖层：背景透明，透出整页天空（与首页一致） */
     .ranking-overlay {
       position: fixed;
       inset: 0;
       z-index: 25;
-      background: var(--bg);
+      background: transparent;
       display: none;
       flex-direction: column;
       overflow-y: auto;
@@ -1017,6 +1017,11 @@
 
     .ranking-overlay.open {
       display: flex
+    }
+
+    /* 排行榜打开时隐藏首页内容（品牌、星图、卡片、页脚），天空背景保持 */
+    body:has(.ranking-overlay.open) .wrap > *:not(#rankingOverlay) {
+      display: none
     }
 
     .ranking-header {
@@ -2762,16 +2767,16 @@
           g.fillStyle = ng; g.beginPath(); g.arc(0, 0, Math.min(W, H) * n[2], 0, Math.PI * 2); g.fill();
           g.restore();
         });
-        /* 尘埃星 170 + 小星 70（静态层） */
+        /* 尘埃星 170（静态层） */
         for (let i = 0; i < 170; i++) {
           g.fillStyle = `rgba(205,196,235,${0.08 + rand() * 0.25})`;
           g.fillRect(rand() * W, rand() * H, 0.2 + rand() * 0.5, 0.2 + rand() * 0.5);
         }
-        for (let i = 0; i < 70; i++) {
-          g.fillStyle = `rgba(215,210,245,${0.18 + rand() * 0.4})`;
-          g.beginPath(); g.arc(rand() * W, rand() * H, 0.4 + rand() * 0.9, 0, Math.PI * 2); g.fill();
+        /* 闪烁星四层：微小星 60 轻闪 / 中 18 / 光晕 8 / 十字芒 2 */
+        for (let i = 0; i < 60; i++) {
+          const cc = starCols[(rand() * starCols.length) | 0];
+          twinkles.push({ x: rand() * W, y: rand() * H, size: 0.5 + rand() * 0.8, base: 0.25 + rand() * 0.35, speed: 0.8 + rand() * 1.7, ph: rand() * Math.PI * 2, col: cc.join(','), small: true });
         }
-        /* 闪烁星三层：中 18 / 光晕 8 / 十字芒 2 */
         for (let i = 0; i < 18; i++) twinkles.push({ x: rand() * W, y: rand() * H, size: 1 + rand() * 1.1, base: 0.35 + rand() * 0.4, speed: 0.8 + rand() * 1.8, ph: rand() * Math.PI * 2, col: medCols[(rand() * medCols.length) | 0] });
         for (let i = 0; i < 8; i++) { const cc = starCols[(rand() * starCols.length) | 0]; twinkles.push({ x: rand() * W, y: rand() * H, size: 1.2 + rand() * 1.6, base: 0.85, speed: 0.4 + rand() * 1.1, ph: rand() * Math.PI * 2, col: cc.join(','), glow: true }); }
         for (let i = 0; i < 2; i++) { const cc = starCols[(rand() * starCols.length) | 0]; twinkles.push({ x: W * 0.08 + rand() * W * 0.84, y: H * 0.08 + rand() * H * 0.6, size: 1.8 + rand() * 1.8, base: 0.9, speed: 0.25 + rand() * 0.5, ph: rand() * Math.PI * 2, col: cc.join(','), spikes: true }); }
@@ -2782,23 +2787,25 @@
         ctx.drawImage(off, 0, 0);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         for (const s of twinkles) {
-          const flicker = 0.5 + 0.5 * Math.sin(t * s.speed + s.ph);
-          const alpha = s.base * (0.3 + 0.7 * flicker);
+          const flick = s.small
+            ? (0.75 + 0.25 * Math.sin(t * s.speed + s.ph))
+            : (0.5 + 0.5 * Math.sin(t * s.speed + s.ph));
+          const alpha = s.small ? s.base * flick : s.base * (0.3 + 0.7 * flick);
           if (s.spikes) {
             const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 8);
-            glow.addColorStop(0, `rgba(${s.col},${0.2 * flicker})`);
-            glow.addColorStop(0.2, `rgba(${s.col},${0.06 * flicker})`);
+            glow.addColorStop(0, `rgba(${s.col},${0.2 * flick})`);
+            glow.addColorStop(0.2, `rgba(${s.col},${0.06 * flick})`);
             glow.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = glow; ctx.fillRect(s.x - s.size * 8, s.y - s.size * 8, s.size * 16, s.size * 16);
             ctx.fillStyle = `rgba(${s.col},${alpha})`;
             ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = `rgba(${s.col},${0.35 * flicker})`; ctx.lineWidth = 0.8;
+            ctx.strokeStyle = `rgba(${s.col},${0.35 * flick})`; ctx.lineWidth = 0.8;
             const L = s.size * 6;
             ctx.beginPath(); ctx.moveTo(s.x - L, s.y); ctx.lineTo(s.x + L, s.y); ctx.moveTo(s.x, s.y - L); ctx.lineTo(s.x, s.y + L); ctx.stroke();
           } else if (s.glow) {
             const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 5);
-            glow.addColorStop(0, `rgba(${s.col},${0.22 * flicker})`);
-            glow.addColorStop(0.3, `rgba(${s.col},${0.05 * flicker})`);
+            glow.addColorStop(0, `rgba(${s.col},${0.22 * flick})`);
+            glow.addColorStop(0.3, `rgba(${s.col},${0.05 * flick})`);
             glow.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = glow; ctx.fillRect(s.x - s.size * 5, s.y - s.size * 5, s.size * 10, s.size * 10);
             ctx.fillStyle = `rgba(${s.col},${alpha})`;

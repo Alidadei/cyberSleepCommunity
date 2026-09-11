@@ -2033,6 +2033,10 @@
       const overlay = document.getElementById('rankingOverlay');
       if (!overlay) return;
       overlay.innerHTML = '';
+      /* 移动端后退手势：入榜时压栈，后退自动关榜回首页 */
+      if (!history.state || !history.state.ranking) {
+        history.pushState({ ranking: true }, '');
+      }
       const header = document.createElement('div');
       header.className = 'ranking-header';
       const back = document.createElement('button');
@@ -2120,6 +2124,8 @@
       if (overlay) { overlay.classList.remove('open'); overlay.innerHTML = ''; }
       currentRankingType = null;
       currentRankingQuery = '';
+      /* 若栈顶仍是榜状态（由按钮/ESC 触发），后退一格回首页 */
+      if (history.state && history.state.ranking) history.back();
     }
 
     function searchScore(p, qL) {
@@ -2300,6 +2306,8 @@
       }
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeStars(); closePanel(); closeLetter(); closeRankingPage(); closeHamburger(); } });
+    /* 移动端后退手势 / 浏览器后退键：关榜回首页 */
+    window.addEventListener('popstate', () => { if (document.getElementById('rankingOverlay')?.classList.contains('open')) { closeRankingPage(); } });
 
     /* ================= 提交 ================= */
     document.getElementById('fUrl').addEventListener('input', e => {

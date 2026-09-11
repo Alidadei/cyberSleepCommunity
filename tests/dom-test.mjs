@@ -184,6 +184,7 @@ const sandbox = {
   innerWidth: 900, innerHeight: 700, devicePixelRatio: 1,
   addEventListener: () => {}, removeEventListener: () => {},
   console, setTimeout, clearTimeout, Math, Date, JSON, Set, Object, Array, Number, String, RegExp, Promise,
+  history: { state: null, pushState: function (s) { this.state = s; }, back: function () { this.state = null; } }
 };
 sandbox.window = sandbox;
 vm.createContext(sandbox);

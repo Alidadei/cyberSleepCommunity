@@ -131,9 +131,10 @@ function makeEl(tag) { return new El(tag); }
 
 const registry = {};
 for (const id of ['list','loadMsg','brandTitle','subtitle','navLang','formTitle','labelTitle','labelUrl','labelType','formHint','letterCaption','sisterApp','sisterName','introHint','navAbout','typeList','tagNodes','searchBox','fTitle','fUrl','fType','fSubmit','fMsg','fileImport','ioMsg','navPublish','navExport','navImport','formPanel','intro','introText','introSign','skyStars','letterBox','navLetter','hamburgerBtn','mainNav','rankingOverlay']) {
-  registry[id] = makeEl(id === 'fTitle' || id === 'fUrl' || id === 'fileImport' ? 'input' : 'div');
+  registry[id] = makeEl(id === 'fTitle' || id === 'fUrl' || id === 'fType' || id === 'searchBox' ? 'input' : 'div');
   registry[id].id = id;
 }
+registry.searchBox.className = 'search';
 
 let docHandlers = {};
 const cssVars = {};
@@ -211,6 +212,12 @@ ok(registry.typeList.children.length === 4, '类型建议列表（datalist）4 �
 ok(cards().length === 0, '默认榜单收起（未点亮节点）', cards().length);
 ok(!registry.list.textContent.includes('点亮一颗星'), '首页不再显示点亮指引');
 ok(liveNodes().length === 6, '节点 = 全部 + 4 内置类型 + 无类型', liveNodes().length);
+ok(registry.tagNodes.querySelectorAll('input.search').length === 1, '搜索框挂回星图容器（绝对居中于光点之间）');
+ok(registry.tagNodes.querySelectorAll('input.search')[0].id === 'searchBox', '星图内搜索框就是 #searchBox');
+ok(liveNodes().every(n => {
+  const l = parseFloat(n.style.left), t = parseFloat(n.style.top);
+  return Math.abs(l - 50) >= 27 || Math.abs(t - 50) >= 15;
+}), '光点不侵入搜索框中央禁区（环绕而非覆盖文字）', liveNodes().map(n => n.style.left + ',' + n.style.top).join(' '));
 ok(/^#[0-9a-f]{6}$/i.test(cssVars['--bg'] || ''), '时辰主题脚本已写入 --bg（夜/昼插值）', cssVars['--bg']);
 ok(cssVars['--t'] !== undefined && !Number.isNaN(parseFloat(cssVars['--t'])), '昼夜渐变因子 --t 已就绪', cssVars['--t']);
 ok(cssVars['--accent-rgb'] && cssVars['--accent-rgb'].split(',').length === 3, 'accent RGB 三元组供透明度派生', cssVars['--accent-rgb']);

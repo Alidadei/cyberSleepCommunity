@@ -22,9 +22,14 @@ const script = scripts.join('\n')
   /* 中和云端配置：测试永远走 LocalStore，不随 index.html 里填写的 SUPABASE 值联网 */
   .replace(/const SUPABASE = \{[^}]*\};/, "const SUPABASE = { url: '', anonKey: '' };");
 
-/* 双域配置红线：SITE.primaryOrigin 与 canonical 注入必须存在 */
-if (!/const SITE = \{ primaryOrigin: '' \};/.test(script)) throw new Error('SITE 双域配置缺失');
-if (!script.includes("link.setAttribute('rel', 'canonical')")) throw new Error('canonical 注入缺失');
+/* 分享卡片红线：og/canonical 必须静态写在 <head>——微信/QQ/Telegram/百度抓分享卡片不执行 JS。
+   域名与 robots.txt / sitemap.xml 三处一致，换域名时同步改 */
+const CANON = 'https://alidadei.github.io/cyberSleepingPill/';
+if (!html.includes('<link rel="canonical" href="' + CANON + '">')) throw new Error('静态 canonical 缺失');
+if (!html.includes('<meta property="og:image" content="' + CANON + 'assets/og-cover.jpg">')) throw new Error('静态 og:image 缺失');
+if (!html.includes('<meta property="og:title" content="电子安眠药 · 犯困内容打分网站">')) throw new Error('静态 og:title 缺失');
+if (!html.includes('<meta name="twitter:card" content="summary_large_image">')) throw new Error('twitter:card 缺失');
+if (/injectSiteMeta|const SITE =/.test(script)) throw new Error('禁止 JS 注入 og/canonical（分享爬虫不执行 JS）');
 /* 层级红线：发布面板 z-index 必须高于排行覆盖层（25），否则榜单页内表单不可见 →「提交跳回主页」反复发 */
 if (!/\.panel \{[\s\S]*?z-index:\s*26/.test(html)) throw new Error('面板层级 ≤ 榜单覆盖层');
 const hbNone = html.search(/\.hamburger \{[\r\n]+ *display: none/);

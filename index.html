@@ -2178,7 +2178,7 @@
         } else {
           m.appendChild(document.createTextNode(hostOf(url)));
         }
-        if ((pick.recommendCount || 1) > 1) m.appendChild(document.createTextNode(' · ' + t('rec_times')(pick.recommendCount)));
+        m.appendChild(document.createTextNode(' · ' + t('rec_times')(pick.recommendCount || 1)));
       } else if (builtin && builtin.sampleRatingAvg != null) {
         m.appendChild(starMark());
         m.appendChild(document.createTextNode(' ' + t('ratings')(builtin.sampleRatingAvg.toFixed(1), builtin.sampleRatingCount)));

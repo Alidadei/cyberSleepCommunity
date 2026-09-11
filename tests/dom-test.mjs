@@ -273,6 +273,7 @@ await sleep(1600);
 ok(store()[0].ratings.join() === '4', '评分入库 ratings=[4]', store()[0].ratings);
 const whaleCard2 = cards().find(c => cardTitle(c).includes('深海鲸鱼'));
 ok(whaleCard2.children[1].textContent.includes('★ 4.0 · 1 次评价'), '刷新后 meta 显示聚合分', whaleCard2.children[1].textContent);
+ok(whaleCard2.children[1].textContent.includes('被推荐 2 次'), '刷新后 meta 仍显示推荐次数');
 ok(whaleCard2.querySelectorAll('.rate')[0].getAttribute('aria-expanded') === 'false', '✓ 1.5s 后列表重渲染、入口复位');
 
 /* ---------- 6. ESC 关闭星星行 ---------- */
@@ -292,6 +293,7 @@ ok(liveNodes().some(n => n.children[1].textContent === '白噪音'), '自定义�
 clickNode('白噪音');
 ok(cards().length === 1 && cardTitle(cards()[0]).includes('篝火白噪音'), '自定义节点可筛选', cards().length);
 ok(cards()[0].children[1].textContent.includes('# 白噪音'), '卡片标签以 # 前缀展示');
+ok(cards()[0].children[1].textContent.includes('被推荐 1 次'), '单次推荐卡片也显示推荐次数（1 次）', cards()[0].children[1].textContent);
 clickNode('白噪音');   /* 收起 */
 
 /* ---------- 8. 样例评分模拟（并入示例聚合值） ---------- */

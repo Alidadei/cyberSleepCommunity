@@ -1834,11 +1834,25 @@
     let allPicks = [];          /* 当前 Store 的全部社区数据缓存 */
     let openStarsEl = null;     /* 当前展开的星星行（同时只开一个） */
 
-    async function refresh() {
+    let _retryTimer = null;
+    async function refresh(attempt) {
+      const n = attempt || 0;
       const loadMsg = document.getElementById('loadMsg');
       loadMsg.className = 'msg';
-      try { allPicks = await Store.load(); }
-      catch (e) { allPicks = []; loadMsg.classList.add('bad'); loadMsg.textContent = t('load_fail'); }
+      try {
+        allPicks = await Store.load();
+        if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+      } catch (e) {
+        allPicks = [];
+        loadMsg.classList.add('bad');
+        loadMsg.textContent = n === 0 ? t('load_fail') : t('load_retrying')(n + 1);
+        if (n < 4) {
+          const delay = 3000 + n * 3000;
+          _retryTimer = setTimeout(() => refresh(n + 1), delay);
+        } else {
+          loadMsg.textContent = t('load_fail_giveup');
+        }
+      }
       render();
     }
     const NODE_SLOTS = [[5, 28], [22, 72], [38, 12], [52, 82], [68, 20], [82, 68], [14, 54], [92, 44], [30, 42], [75, 88], [8, 86], [60, 8]];
@@ -2520,6 +2534,8 @@
         back: '返回',
         search_tip: '试试「焦虑」「吵」「肩颈」这类词，或换个说法',
         load_fail: '云端加载失败，请稍后再试',
+        load_retrying: n => `云端加载失败，正在自动重试（第 ${n} 次）…`,
+        load_fail_giveup: '已停止自动重试，请手动刷新',
         sister_app: '姊妹应用：', sister_name: '睡眠站台 (Android)',
         letter_caption: '站长手书 · 上海 2026.9.10 凌晨 · 点击任意处关闭', letter_alt: '站长手书引言原稿（2026.9.10 凌晨）',
         intro_hint: '轻触任意处显示全文', intro_hint_enter: '再按一次进入网站', intro_sign: '—— 上海 2026.9.10. 1:49',
@@ -2579,6 +2595,8 @@
         back: 'Back',
         search_tip: 'Try words like "anxiety", "noise", "sore" — or rephrase',
         load_fail: 'Failed to load, please try again later',
+        load_retrying: n => `Failed to load, auto-retrying (attempt ${n})…`,
+        load_fail_giveup: 'Retries stopped, please refresh manually',
         sister_app: 'Sister app: ', sister_name: 'Sleep Station (Android)',
         letter_caption: 'The founder\'s handwritten note · Shanghai, Sep 10 2026, before dawn · tap anywhere to close', letter_alt: 'Photo of the founder\'s handwritten introduction',
         intro_hint: 'Tap anywhere to reveal the letter', intro_hint_enter: 'Tap again to enter', intro_sign: '— Shanghai, 1:49 AM, Sep 10, 2026',
